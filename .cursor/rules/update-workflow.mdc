@@ -1,0 +1,391 @@
+---
+description: Comprehensive workflow for handling version-based update requests and implementation tracking for the Brew Events project
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Update Workflow System for Brew Events
+
+## 🚨 CRITICAL RULE: NEVER AUTO-COMPLETE UPDATES
+
+**MANDATORY BEHAVIOR:** Updates must NEVER be marked as complete `- [x]` automatically after implementation. Updates remain in-progress `- [-]` until the user explicitly confirms completion.
+
+**FORBIDDEN ACTIONS:**
+- ❌ Changing `- [-]` to `- [x]` after implementation
+- ❌ Marking updates complete based on successful testing
+- ❌ Auto-completion for any reason whatsoever
+
+**REQUIRED BEHAVIOR:**
+- ✅ Keep updates in `- [-]` status after implementation
+- ✅ Wait for explicit user confirmation ("Update [ID] complete")
+- ✅ Only change to `- [x]` when user explicitly says so
+
+## Overview
+This document defines the comprehensive workflow for handling version-based update requests in the Brew Events project. When users reference specific update IDs (e.g., "Fix 1.A.T6.1"), this system ensures accurate, thorough, and production-ready implementations.
+
+## Update Request Format
+Users can issue update requests using the following formats:
+- `Fix 1.A.T6.1` - Implement the specified update
+- `Update 1.A.M6.2.M complete` - Mark update as completed
+- `Start 1.A.SYSTEM.7` - Begin working on system-wide update
+
+## Update ID Validation
+
+### Valid Update States
+Before processing any update request, validate the update ID:
+
+1. **Check Update Exists**: Verify the update ID exists in `Update Instructions/1/A/VERSION_1A_UPDATE_INSTRUCTIONS.md`
+2. **Check Current Status**: Parse the checklist to determine current state:
+   - `- [ ]` = Available for implementation
+   - `- [-]` = Currently in progress (invalid for new Fix requests)
+   - `- [x]` = Already completed (invalid for new Fix requests)
+
+### Invalid Update Scenarios
+If an update request is invalid, respond with:
+
+```
+❌ **Invalid Update Request: [UPDATE_ID]**
+
+**Reason:** [One of the following]
+- Update ID does not exist in Version 1.A instructions
+- Update is already in progress (marked with [-])
+- Update is already completed (marked with [x])
+- Update ID format is invalid (should be 1.A.[PAGE_ID].[NUMBER] or 1.A.SYSTEM.[NUMBER])
+
+**Available Updates:** [List 3-5 available updates from the same category]
+
+Please select a valid update ID that is currently available (marked with [ ]).
+```
+
+## Fix Request Processing
+
+**🚨 REMINDER: DO NOT AUTO-COMPLETE UPDATES**
+Before proceeding with any fix request, remember:
+- Updates stay in `- [-]` (in-progress) after implementation
+- NEVER change to `- [x]` (complete) automatically
+- Wait for explicit user confirmation
+
+When a user issues a "Fix [UPDATE_ID]" command:
+
+### Step 1: Update Status to In Progress
+1. Read the current update instructions file
+2. Find the specific update ID in the checklist
+3. Change `- [ ]` to `- [-]` for that update (IN PROGRESS status)
+4. Update progress tracking numbers in the **Progress Tracking** section:
+   - Count total completed updates (marked with [x])
+   - Count total in-progress updates (marked with [-])
+   - Calculate remaining updates (total - completed - in_progress)
+   - Update percentages based on actual counts
+   - Update the progress tracking section with new numbers
+5. Save the updated checklist
+
+**⚠️ IMPORTANT:** The update will remain in `- [-]` (in-progress) status until the user explicitly confirms completion. Do NOT change to `- [x]` (complete) automatically after implementation.
+
+### Step 2: Extract Update Information
+Parse the update details from the instructions:
+- **Update ID**: Full identifier (e.g., 1.A.T6.1.M)
+- **Title**: Automation-compatible title (e.g., "Fix: Search page routing after event edit")
+- **Page/Component**: Target page or system component
+- **Problem**: Detailed description of the issue
+- **Fix**: Specific solution approach
+- **Files to Update**: List of files that need modification
+- **Database Required**: Check for .M suffix
+
+### Step 3: Implementation Response Format
+Provide a comprehensive response following this exact structure:
+
+```markdown
+# 🔧 Implementing Update [UPDATE_ID]
+
+## 📋 Update Summary
+**Update ID:** [UPDATE_ID]
+**Title:** [Title from update instructions]
+**Page/Component:** [PAGE_NAME]
+**Priority:** [High/Medium/Low based on instructions]
+**Database Changes:** [Yes/No - based on .M suffix]
+
+## 🎯 Problem Statement
+[Exact problem description from update instructions]
+
+## 🛠️ Solution Approach
+[Detailed fix description from update instructions]
+
+## 📁 Files to be Updated
+[List all files from the update instructions with brief description of changes needed]
+
+## ⚠️ Database Migration Required (if .M suffix)
+**Migration Files Needed:**
+- [List specific migration files mentioned]
+- [Database schema changes required]
+- [RLS policy updates needed]
+
+**⚠️ IMPORTANT:** This update requires database changes. After implementing the code changes, you will need to:
+1. Review the database migration scripts
+2. Test the migration in a development environment
+3. Plan for potential downtime during deployment
+4. Ensure proper rollback procedures are in place
+
+## 🚀 Implementation Plan
+1. [Step-by-step implementation plan]
+2. [Include testing requirements]
+3. [Include verification steps]
+
+---
+*Status: In Progress ([-]) - Checklist updated*
+```
+
+### Step 4: Implement the Fix
+Follow the comprehensive implementation process:
+
+1. **Pre-Implementation Analysis**
+   - Search for all instances of components/functions to be modified
+   - Create inventory of all files that need updates
+   - Plan update sequence to avoid breaking dependencies
+
+2. **Code Implementation**
+   - Follow all coding standards from best-practices.mdc
+   - Implement changes systematically
+   - Ensure TypeScript strict mode compliance
+   - Add proper error handling and accessibility
+
+3. **Testing Implementation**
+   - Write/update unit tests for modified functions
+   - Write/update component tests for UI changes
+   - Test integration points
+   - Verify accessibility compliance
+   - Test on multiple screen sizes
+
+4. **Verification Process**
+   - Run TypeScript compilation: `npx tsc --noEmit`
+   - Run linting: `npm run lint`
+   - Run test suite: `npm test`
+   - Manual testing of affected functionality
+   - Cross-browser testing if applicable
+
+**🚨 CRITICAL: DO NOT MARK COMPLETE AFTER IMPLEMENTATION**
+After completing all implementation and testing steps:
+- The update MUST remain in `- [-]` (in-progress) status
+- DO NOT change the checklist to `- [x]` (complete)
+- Wait for explicit user confirmation before marking complete
+
+### Step 5: Post-Implementation Response
+After completing the implementation, provide:
+
+```markdown
+# ✅ Update [UPDATE_ID] Implementation Complete
+
+## 🎯 Issue Resolved
+[Restate the original problem]
+
+## 🛠️ Fix Applied
+[Describe what was actually implemented]
+
+## 📁 Files Updated
+- `[file1.tsx]` - [Description of changes made]
+- `[file2.ts]` - [Description of changes made]
+- `[file3.test.tsx]` - [Description of test updates]
+
+## 🧪 Testing Results
+**Unit Tests:** ✅ [X/X tests passing]
+**Component Tests:** ✅ [X/X tests passing]
+**Integration Tests:** ✅ [X/X tests passing]
+**TypeScript Compilation:** ✅ No errors
+**ESLint:** ✅ No issues
+**Manual Testing:** ✅ Functionality verified
+
+## 📱 Cross-Platform Testing
+- **Desktop:** ✅ Tested and working
+- **Mobile:** ✅ Responsive design verified
+- **Accessibility:** ✅ Screen reader compatible
+
+## 🔄 Database Changes (if applicable)
+[If .M suffix - detail migration files created and testing performed]
+
+## ⚠️ IMPORTANT: Update Status Remains In Progress
+**Current Status:** In Progress `- [-]` (unchanged)
+**Checklist Status:** Will remain marked as in-progress until you explicitly confirm completion
+
+---
+**Ready for User Testing** 🚀
+Please test the implementation thoroughly. When you are satisfied with the results, respond with "Update [UPDATE_ID] complete" to mark it as finished, or provide feedback for any issues that need to be addressed.
+
+**The update will NOT be marked as complete automatically** - it requires your explicit confirmation.
+```
+
+## CRITICAL: Update Completion Policy
+
+**🚨 MANDATORY RULE: Updates are NEVER marked as complete automatically**
+
+### Completion Requirements
+1. **Implementation must be finished** - All code changes, testing, and verification complete
+2. **User must explicitly confirm** - User says "Update [UPDATE_ID] complete" or equivalent
+3. **No exceptions** - Even if implementation is perfect, wait for user confirmation
+
+### Invalid Auto-Completion Scenarios
+❌ **NEVER mark complete after:**
+- Finishing implementation
+- All tests passing
+- Code review completion
+- Manual testing success
+- Any technical milestone
+
+✅ **ONLY mark complete when:**
+- User explicitly says the update is "complete"
+- User confirms they are satisfied with the implementation
+- User provides explicit completion confirmation
+
+## Completion Request Processing
+
+When a user responds with "Update [UPDATE_ID] complete":
+
+### Step 1: Validate Completion Request
+- Verify the update ID was previously marked as in progress `- [-]`
+- Confirm the update was actually implemented
+
+### Step 2: Update Checklist to Complete
+1. Read the current update instructions file
+2. Find the specific update ID in the checklist
+3. Change `- [-]` to `- [x]` for that update
+4. Update progress tracking numbers in the **Progress Tracking** section:
+   - Count total completed updates (marked with [x])
+   - Count total in-progress updates (marked with [-])
+   - Calculate remaining updates (total - completed - in_progress)
+   - Update percentages based on actual counts
+   - Update the progress tracking section with new numbers
+
+### Step 3: Completion Response
+```markdown
+# ✅ Update [UPDATE_ID] Marked Complete
+
+**Status:** Successfully completed and verified
+**Checklist:** Updated with checkmark ✅
+**Progress:** [COMPLETED_COUNT]/[TOTAL_COUNT] updates completed ([COMPLETED_PERCENTAGE]%)
+
+## 📊 Project Progress Update
+- **Total Updates:** [TOTAL_COUNT]
+- **Database Updates (.M):** [DATABASE_COUNT]
+- **Completed:** [COMPLETED_COUNT]/[TOTAL_COUNT] ([COMPLETED_PERCENTAGE]%)
+- **In Progress:** [IN_PROGRESS_COUNT]/[TOTAL_COUNT] ([IN_PROGRESS_PERCENTAGE]%)
+- **Remaining:** [REMAINING_COUNT]/[TOTAL_COUNT] ([REMAINING_PERCENTAGE]%)
+
+**Next Recommended Updates:**
+[Suggest 2-3 related updates from the same category or logically connected updates]
+```
+
+## Special Handling for Database Updates (.M suffix)
+
+### Pre-Implementation Warning
+For any update with .M suffix, always include this warning:
+
+```markdown
+## ⚠️ DATABASE MIGRATION REQUIRED
+
+This update includes database schema changes that require special handling:
+
+### Required Actions Before Implementation:
+1. **Backup Current Database** - Ensure you have a recent backup
+2. **Review Migration Scripts** - All database changes will be in migration files
+3. **Test in Development** - Run migrations in dev environment first
+4. **Plan Downtime** - Some migrations may require brief service interruption
+5. **Prepare Rollback** - Have rollback procedures ready
+
+### Migration Files That Will Be Created:
+[List specific migration files from the update instructions]
+
+**Proceed with implementation? The code changes will be made, but you'll need to handle database migrations separately.**
+```
+
+### Post-Implementation Database Guidance
+After implementing a .M update:
+
+```markdown
+## 🗄️ Database Migration Next Steps
+
+The code implementation is complete, but you still need to handle database changes:
+
+### Migration Files Created:
+[List the actual migration files created]
+
+### Required Database Actions:
+1. **Review Migration Scripts** - Check all SQL in the migration files
+2. **Test Migrations** - Run in development environment first
+3. **Execute Migrations** - Apply to production when ready
+4. **Verify Schema Changes** - Confirm all changes applied correctly
+5. **Test Application** - Verify app works with new schema
+
+### Commands to Run:
+```bash
+# Test migration in development
+supabase db reset --local
+
+# Apply migration to production (when ready)
+supabase db push
+```
+
+**⚠️ Do not mark this update as complete until database migrations are successfully applied and tested.**
+```
+
+## Error Handling and Recovery
+
+### Implementation Failures
+If implementation fails:
+1. Revert checklist status from `[-]` back to `[ ]`
+2. Provide detailed error information
+3. Suggest alternative approaches or prerequisite updates
+
+### Rollback Procedures
+If user needs to rollback an update:
+1. Revert all code changes
+2. Update checklist status appropriately
+3. Document lessons learned for future attempts
+
+## Integration with Existing Workflow
+
+### Reference to Best Practices
+All implementations must follow:
+- Complete coding standards from best-practices.mdc
+- Comprehensive app-wide update requirements
+- Mandatory verification processes
+- Quality assurance checklists
+
+### Version System Integration
+- Use existing PageIdDisplay system for new pages
+- Follow established update ID format
+- Maintain compatibility with existing version tracking
+
+## Workflow Validation
+
+### Self-Check Questions
+Before marking any update complete:
+1. ✅ Does the implementation solve the exact problem described?
+2. ✅ Are all files from the update instructions modified?
+3. ✅ Do all tests pass without errors?
+4. ✅ Is the code production-ready and secure?
+5. ✅ Are database migrations (if any) properly handled?
+6. ✅ Is the checklist accurately updated?
+
+### Quality Gates
+No update should be marked complete unless:
+- All code follows project standards
+- All tests pass
+- TypeScript compilation succeeds
+- ESLint shows no errors
+- Manual testing confirms functionality
+- **User explicitly confirms completion** (MANDATORY - never auto-complete)
+
+---
+
+## Quick Reference Commands
+
+### For AI Assistant:
+- **Fix Request:** "Fix 1.A.T6.1" → Implement update with full workflow
+- **Completion:** "Update 1.A.T6.1 complete" → Mark as finished
+- **Status Check:** "Status of 1.A.T6.1" → Show current progress
+
+### For Users:
+- **Start Update:** `Fix [UPDATE_ID]`
+- **Mark Complete:** `Update [UPDATE_ID] complete`
+- **Check Progress:** `Show update progress`
+- **List Available:** `Show available updates`
+
+This workflow ensures every update is implemented thoroughly, tested completely, and tracked accurately throughout the Version 1.A development process.

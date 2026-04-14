@@ -1,0 +1,540 @@
+---
+description: Comprehensive workflow for generating and updating version-based update instruction documents for the Brew Events project
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Create Update Instructions System for Brew Events
+
+## Overview
+This document defines the comprehensive workflow for generating and updating version-based update instruction documents. When users request "Generate update [ID] instructions based on [feedback]" or "Add [feedback] to update [ID] instructions", this system ensures proper formatting, ID generation, and checklist management.
+
+## Update Instruction Generation Commands
+
+### Generate New Update Instructions
+- `Generate update 1.B instructions based on [feedback]` - Create new version update document
+- `Generate update 2.A instructions based on [feedback]` - Create new major version document
+
+### Add to Existing Instructions
+- `Add [feedback] to update 1.A instructions` - Add new issues to existing document
+- `Update 1.A instructions with [feedback]` - Modify existing update document
+
+## Document Structure Requirements
+
+### File Organization
+All update instruction documents must follow this structure:
+```
+Update Instructions/
+├── [MAJOR]/                    # Major version number (1, 2, 3, etc.)
+│   ├── [MINOR]/               # Minor version letter (A, B, C, etc.)
+│   │   └── VERSION_[MAJOR][MINOR]_UPDATE_INSTRUCTIONS.md
+```
+
+**Examples:**
+- `Update Instructions/1/A/VERSION_1A_UPDATE_INSTRUCTIONS.md`
+- `Update Instructions/1/B/VERSION_1B_UPDATE_INSTRUCTIONS.md`
+- `Update Instructions/2/A/VERSION_2A_UPDATE_INSTRUCTIONS.md`
+
+### Document Template Structure
+Every update instruction document must include these sections in order:
+
+```markdown
+# Version [MAJOR].[MINOR] Update Instructions
+## [Description of Update Source]
+
+**Version:** [MAJOR].[MINOR]
+**Date:** [Current Date]
+**Status:** Planned
+
+[Brief description of update source and purpose]
+
+## Implementation Checklist
+[Comprehensive checklist organized by app location with bidirectional links]
+
+## Update ID Format
+[Explanation of ID format and .M suffix system]
+
+## [Category 1] Updates
+
+<a id="update-id-[anchor]"></a>
+### Update ID: [MAJOR].[MINOR].[PAGE_ID].[NUMBER][.M]
+**Title:** [Action]: [Brief description]
+**Page:** [Page Name]
+**Problem:** [Detailed problem description]
+**Fix:** [Specific solution approach]
+**Files to Update:**
+- [List of files with descriptions]
+
+[← Back to Checklist](#category-name)
+
+**Note:** The Title field follows the automation naming convention used in PR titles:
+- Bug fixes: "Fix: [description]" (e.g., "Fix: Search page routing after event edit")
+- Features: "Feature: [description]" (e.g., "Feature: Add bulk event import")
+- Updates/improvements: "Update: [description]" (e.g., "Update: Improve date picker accessibility")
+
+[Continue for all categories...]
+
+## Testing Requirements
+[Comprehensive testing checklist]
+
+## Documentation Updates
+[Required documentation changes]
+
+---
+**Total Updates:** [X] individual updates across [Y] major categories
+**Database/Supabase Updates:** [Z] updates require database migrations (.M suffix)
+**Estimated Implementation Time:** [Timeline]
+**Total Project Timeline:** [Timeline]
+```
+
+## Update ID Generation System
+
+### ID Format Rules
+All update IDs must follow this exact format:
+- **Standard Updates:** `[MAJOR].[MINOR].[PAGE_ID].[UPDATE_NUMBER]`
+- **Database Updates:** `[MAJOR].[MINOR].[PAGE_ID].[UPDATE_NUMBER].M`
+- **System Updates:** `[MAJOR].[MINOR].SYSTEM.[UPDATE_NUMBER][.M]`
+
+### Page ID Reference
+Use existing page IDs from `src/constants/version.ts`:
+```typescript
+// Tab Pages (T)
+T1: Today, T2: Week, T3: Month, T4: Add Event, T5: Food Trucks, T6: Search, T7: Admin
+
+// Auth Pages (A)  
+A2: Login, A3: Forgot Password, A4: Reset Password, A5: Accept Invite
+
+// Modal Pages (M)
+M1: Create Account, M2: Create Food Truck Contact, M3: Create Food Truck Event,
+M4: Data Management, M5: Edit Enums, M6: Event Detail, M7: Food Order Report,
+M8: Food Truck All Events, M9: Food Truck Detail, M10: Import Summary, M11: Manage Users
+```
+
+### Database Update Detection (.M Suffix)
+Add `.M` suffix when updates require:
+- Database schema changes
+- New database migrations
+- Supabase configuration changes
+- RLS policy updates
+- Database constraint modifications
+
+## Feedback Analysis and Categorization
+
+### Step 1: Parse Feedback Input
+When receiving feedback, analyze and categorize each issue:
+
+1. **Extract Individual Issues**
+   - Parse feedback into discrete, actionable items
+   - Identify the affected page/component for each issue
+   - Determine if database changes are required
+
+2. **Categorize by Component**
+   - Authentication & Login
+   - Calendar Views (Daily/Weekly/Monthly)
+   - Search & Food Trucks
+   - Event Management
+   - Forms & Editing
+   - Admin & System-Wide
+   - UI/UX General
+
+3. **Determine Priority Level**
+   - **High Priority:** Critical UX issues, broken functionality, security concerns
+   - **Medium Priority:** Feature enhancements, usability improvements
+   - **Low Priority:** Polish, optimization, nice-to-have features
+
+### Step 2: Generate Update IDs
+For each identified issue:
+
+1. **Determine Target Page/Component**
+   - Map issue to specific page ID (T1, M6, A2, etc.)
+   - Use SYSTEM for cross-cutting concerns
+
+2. **Assign Sequential Numbers**
+   - Check existing update IDs in the document
+   - Assign next available number for that page
+   - Ensure no duplicate IDs
+
+3. **Add Database Suffix**
+   - Analyze if issue requires database changes
+   - Add `.M` suffix if database migration needed
+
+### Step 3: Create Problem-Solution Mapping
+For each update:
+
+1. **Problem Statement**
+   - Clear, specific description of the issue
+   - Include user impact and current behavior
+   - Reference specific UI elements or functionality
+
+2. **Fix Description**
+   - Detailed solution approach
+   - Technical implementation strategy
+   - Expected outcome after fix
+
+3. **Files to Update**
+   - List all files that need modification
+   - Include brief description of changes needed
+   - Identify new files that need creation
+
+4. **Generate Update Title** (for automation compatibility)
+   - Create a concise, descriptive title for the update
+   - Format: "[Action]: [Brief description]"
+   - Examples:
+     - "Fix: Search page routing after event edit"
+     - "Feature: Add bulk event import functionality"
+     - "Update: Improve date picker accessibility"
+   - This title will be used in PR titles by the automation agent
+
+## Checklist Generation Process
+
+### Checklist Organization
+The implementation checklist must be organized by logical app location categories:
+
+1. **App Location Categories**
+   - Group updates by where they occur in the app
+   - Use descriptive category names matching app structure
+   - Include update count per category
+   - No priority sections - all updates treated equally
+
+2. **Testing & Documentation**
+   - Comprehensive testing requirements
+   - Documentation update needs
+   - Quality assurance checklist
+
+### Checklist Format Requirements with Bidirectional Links
+Each checklist item must follow this format with clickable links:
+```markdown
+- [ ] **[UPDATE_ID](#anchor-id)** - [Brief description of fix]
+```
+
+**Examples:**
+```markdown
+- [ ] **[1.A.T6.1](#update-id-1at61)** - Fix filter events functionality
+- [ ] **[1.A.M6.2.M](#update-id-1am62m)** - Fix note field truncation
+- [ ] **[1.A.SYSTEM.7](#update-id-1asystem7)** - Standardize date format across app
+```
+
+### Anchor ID Generation Rules
+For each detailed update section, include HTML anchor tags:
+```markdown
+<a id="update-id-1at61"></a>
+### Update ID: 1.A.T6.1
+```
+
+**Anchor ID Format:**
+- Convert dots to lowercase: `1.A.T6.1` → `1at61`
+- Convert to lowercase: `1.A.M6.2.M` → `1am62m`
+- System updates: `1.A.SYSTEM.7` → `1asystem7`
+
+### Back-Link Requirements
+Each detailed update section must include a back-link to the checklist:
+```markdown
+[← Back to Checklist](#category-name)
+```
+
+**Category Anchor Examples:**
+- `#authentication--login`
+- `#calendar-views`
+- `#search--food-trucks-screen`
+- `#event-detail-screen`
+- `#system-wide-changes-database-required`
+
+### Progress Tracking Section
+Include progress metrics at the bottom of checklist:
+```markdown
+**Progress Tracking:**
+- **Total Updates:** [X]
+- **Database Updates (.M):** [Y]
+- **Completed:** 0/[X] (0%)
+- **In Progress:** 0/[X] (0%)
+- **Remaining:** [X]/[X] (100%)
+```
+
+## Generation Workflow
+
+### For "Generate update [ID] instructions based on [feedback]"
+
+#### Step 1: Validate Request
+1. **Parse Version ID**
+   - Extract major and minor version (e.g., "1.B" from "Generate update 1.B instructions")
+   - Validate format is correct
+
+2. **Check for Existing Document**
+   - Look for existing file at expected path
+   - If exists, prompt user to use "Add" command instead
+
+3. **Create Directory Structure**
+   - Create `Update Instructions/[MAJOR]/[MINOR]/` if needed
+   - Prepare for new document creation
+
+#### Step 2: Analyze Feedback
+1. **Parse Feedback Content**
+   - Break down feedback into individual issues
+   - Identify affected components/pages
+   - Determine database requirements
+
+2. **Generate Update IDs and Titles**
+   - Assign appropriate page IDs
+   - Create sequential numbering
+   - Add .M suffix where needed
+   - **Generate descriptive titles** following automation naming convention:
+     - Bug fixes: "Fix: [brief description]"
+     - New features: "Feature: [brief description]"  
+     - Improvements: "Update: [brief description]"
+
+3. **Categorize Updates**
+   - Group by logical categories
+   - Assign priority levels
+   - Estimate implementation complexity
+
+#### Step 3: Generate Document
+1. **Create Document Structure**
+   - Use template format
+   - Fill in version information
+   - Add comprehensive checklist
+
+2. **Generate Update Sections**
+   - Create detailed update entries
+   - **Include Title field** with automation-compatible naming (Fix:/Feature:/Update:)
+   - Include problem/fix/files for each
+   - Organize by category
+
+3. **Add Supporting Sections**
+   - Implementation priority
+   - Testing requirements
+   - Documentation needs
+   - Timeline estimates
+
+#### Step 4: Provide Response
+```markdown
+# ✅ Update Instructions Generated: Version [MAJOR].[MINOR]
+
+## 📋 Document Created
+**File:** `Update Instructions/[MAJOR]/[MINOR]/VERSION_[MAJOR][MINOR]_UPDATE_INSTRUCTIONS.md`
+**Total Updates:** [X] individual updates
+**Database Updates:** [Y] updates require migrations (.M suffix)
+
+## 📊 Update Breakdown
+- **[Category 1]:** [X] updates
+- **[Category 2]:** [Y] updates
+- **[Category 3]:** [Z] updates
+[Continue for all categories...]
+
+## 🔗 Bidirectional Navigation
+- **Forward Links:** All checklist items link directly to detailed descriptions
+- **Back Links:** All detailed descriptions link back to appropriate checklist sections
+- **Anchor System:** HTML anchors enable seamless navigation throughout document
+
+## 📁 Files Structure Created
+- Created directory: `Update Instructions/[MAJOR]/[MINOR]/`
+- Generated: `VERSION_[MAJOR][MINOR]_UPDATE_INSTRUCTIONS.md`
+- Total document length: [X] lines
+
+**Ready for implementation!** Use "Fix [UPDATE_ID]" to begin implementing specific updates.
+```
+
+### For "Add [feedback] to update [ID] instructions"
+
+#### Step 1: Validate Existing Document
+1. **Locate Document**
+   - Find existing update instructions file
+   - Verify document exists and is accessible
+
+2. **Parse Current State**
+   - Read existing update IDs
+   - Identify next available numbers for each page
+   - Check current progress status
+
+#### Step 2: Process New Feedback
+1. **Analyze New Issues**
+   - Parse additional feedback
+   - Generate new update IDs (continuing sequence)
+   - Categorize new updates
+
+2. **Integrate with Existing**
+   - Add to appropriate categories
+   - Update checklist with new items
+   - Maintain document organization
+
+#### Step 3: Update Document
+1. **Add New Updates**
+   - Insert new update sections in appropriate categories
+   - Maintain alphabetical/logical ordering
+   - Update all cross-references
+
+2. **Update Checklist**
+   - Add new checklist items
+   - Update progress tracking numbers
+   - Maintain category organization
+
+3. **Update Summary Statistics**
+   - Increment total update count
+   - Update database update count if applicable
+   - Adjust timeline estimates
+
+#### Step 4: Provide Update Response
+```markdown
+# ✅ Update Instructions Updated: Version [MAJOR].[MINOR]
+
+## 📋 Updates Added
+**New Updates:** [X] additional updates added
+**New Database Updates:** [Y] new .M updates added
+**Updated File:** `Update Instructions/[MAJOR]/[MINOR]/VERSION_[MAJOR][MINOR]_UPDATE_INSTRUCTIONS.md`
+
+## 🆕 New Updates Added
+1. **[NEW_UPDATE_ID]** - [Description]
+2. **[NEW_UPDATE_ID]** - [Description]
+3. **[NEW_UPDATE_ID]** - [Description]
+
+## 📊 Updated Statistics
+- **Total Updates:** [X] (was [Y], added [Z])
+- **Database Updates (.M):** [A] (was [B], added [C])
+- **New Categories:** [List any new categories added]
+
+## 📁 Document Updated
+- Updated checklist with [X] new items
+- Added [Y] new update sections
+- Updated progress tracking
+- Maintained document organization
+
+**Ready for implementation!** Use "Fix [UPDATE_ID]" to begin implementing any available updates.
+```
+
+## Quality Assurance Requirements
+
+### Document Validation Checklist
+Before completing any generation or update:
+
+1. **Structure Validation**
+   - [ ] Proper file path and naming
+   - [ ] Complete document template sections
+   - [ ] Consistent formatting throughout
+
+2. **Update ID Validation**
+   - [ ] All IDs follow proper format
+   - [ ] No duplicate IDs exist
+   - [ ] Sequential numbering per page
+   - [ ] Correct .M suffix usage
+
+3. **Content Quality**
+   - [ ] Clear problem statements
+   - [ ] Specific fix descriptions
+   - [ ] Complete file lists
+   - [ ] Appropriate categorization
+
+4. **Checklist Accuracy**
+   - [ ] All updates included in checklist
+   - [ ] Proper category organization by app location
+   - [ ] Accurate progress tracking
+   - [ ] Bidirectional links working correctly
+
+5. **Cross-Reference Integrity**
+   - [ ] Anchor IDs properly formatted
+   - [ ] Back-links reference correct sections
+   - [ ] Summary statistics accurate
+   - [ ] Category counts correct
+   - [ ] Timeline estimates reasonable
+
+## Error Handling
+
+### Invalid Generation Requests
+Handle these scenarios appropriately:
+
+1. **Document Already Exists**
+   ```markdown
+   ❌ **Update Instructions Already Exist: Version [MAJOR].[MINOR]**
+   
+   **Existing File:** `Update Instructions/[MAJOR]/[MINOR]/VERSION_[MAJOR][MINOR]_UPDATE_INSTRUCTIONS.md`
+   
+   **Options:**
+   - Use "Add [feedback] to update [MAJOR].[MINOR] instructions" to add new updates
+   - Use "Update [MAJOR].[MINOR] instructions with [feedback]" to modify existing
+   - Specify a new version (e.g., "[MAJOR].[NEXT_MINOR]") for new document
+   ```
+
+2. **Invalid Version Format**
+   ```markdown
+   ❌ **Invalid Version Format: [INPUT]**
+   
+   **Expected Format:** [MAJOR].[MINOR] (e.g., "1.B", "2.A", "1.C")
+   **Major Version:** Numeric (1, 2, 3, etc.)
+   **Minor Version:** Alphabetic (A, B, C, etc.)
+   
+   **Examples:**
+   - "Generate update 1.B instructions based on [feedback]" ✅
+   - "Generate update 2.A instructions based on [feedback]" ✅
+   ```
+
+3. **Missing or Invalid Feedback**
+   ```markdown
+   ❌ **Insufficient Feedback Provided**
+   
+   **Issue:** No actionable feedback content provided for analysis
+   
+   **Required:** Detailed feedback describing:
+   - Specific issues or problems
+   - Desired improvements
+   - User experience concerns
+   - Technical requirements
+   
+   **Example:** "Generate update 1.B instructions based on: Login form is too slow, search doesn't work on mobile, need better error messages"
+   ```
+
+## Integration with Existing Systems
+
+### Compatibility Requirements
+All generated documents must:
+
+1. **Follow Existing Standards**
+   - Use established page ID system from `src/constants/version.ts`
+   - Follow coding standards from `code_style.md`
+   - Reference database schema from `database_details.md`
+
+2. **Integrate with Workflow System**
+   - Generated update IDs work with `update-workflow.mdc`
+   - Checklist format compatible with progress tracking
+   - Database updates properly marked for special handling
+
+3. **Maintain Version Consistency**
+   - Sequential version numbering
+   - Consistent document structure
+   - Proper cross-referencing
+
+### File System Integration
+Ensure proper file organization:
+```
+app-root/
+├── Update Instructions/
+│   ├── 1/
+│   │   ├── A/
+│   │   │   └── VERSION_1A_UPDATE_INSTRUCTIONS.md
+│   │   ├── B/
+│   │   │   └── VERSION_1B_UPDATE_INSTRUCTIONS.md
+│   │   └── C/
+│   │       └── VERSION_1C_UPDATE_INSTRUCTIONS.md
+│   └── 2/
+│       └── A/
+│           └── VERSION_2A_UPDATE_INSTRUCTIONS.md
+```
+
+## Quick Reference
+
+### Command Patterns
+- **Generate:** `Generate update [MAJOR].[MINOR] instructions based on [feedback]`
+- **Add:** `Add [feedback] to update [MAJOR].[MINOR] instructions`
+- **Update:** `Update [MAJOR].[MINOR] instructions with [feedback]`
+
+### Update ID Format
+- **Standard:** `[MAJOR].[MINOR].[PAGE_ID].[NUMBER]`
+- **Database:** `[MAJOR].[MINOR].[PAGE_ID].[NUMBER].M`
+- **System:** `[MAJOR].[MINOR].SYSTEM.[NUMBER][.M]`
+
+### Required Sections
+1. Implementation Checklist (with bidirectional links)
+2. Update ID Format
+3. Categorized Updates (with HTML anchors and back-links)
+4. Testing Requirements
+5. Documentation Updates
+6. Summary Statistics
+
+This system ensures consistent, comprehensive, and actionable update instruction documents that integrate seamlessly with the existing development workflow.

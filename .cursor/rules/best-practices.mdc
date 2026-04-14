@@ -1,0 +1,956 @@
+---
+description: Comprehensive development standards and best practices for the Brew Events project
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Cursor Rules for Brew Events Project
+
+## Project Overview
+This is a comprehensive food truck and brewery event management application built with React Native + Expo, TypeScript (strict mode), Supabase backend with PostgreSQL, and comprehensive security measures.
+
+## Required References for All Updates
+- **ALWAYS reference `code_style.md`** for detailed coding standards, TypeScript usage, React Native patterns, and file structure guidelines
+- **ALWAYS reference `database_details.md`** for complete database schema, table structures, relationships, and RLS policies
+- These documents contain essential implementation details that must be followed for every code update and prompt response
+
+## Version-Based Update Requests
+**🔄 For update requests using Version IDs (e.g., "Fix 1.A.T6.1", "Update 1.A.M6.2.M complete"):**
+- **IMMEDIATELY redirect to `update-workflow.mdc`** - This file contains the complete workflow for handling version-based updates
+- **DO NOT proceed with implementation** until following the update-workflow.mdc process
+- **Validate update ID** and status before beginning any work
+- **Follow the structured implementation process** defined in update-workflow.mdc
+
+**Examples of version-based requests:**
+- "Fix 1.A.T6.1" → Use update-workflow.mdc
+- "Start 1.A.SYSTEM.7" → Use update-workflow.mdc  
+- "Update 1.A.M6.2.M complete" → Use update-workflow.mdc
+- "Implement update 1.A.T5.3.M" → Use update-workflow.mdc
+
+## Update Instruction Generation Requests
+**📋 For generating or modifying update instruction documents:**
+- **IMMEDIATELY redirect to `create-update-instructions.mdc`** - This file contains the complete workflow for creating update instruction documents
+- **DO NOT proceed with generation** until following the create-update-instructions.mdc process
+- **Validate version format** and existing documents before beginning
+- **Follow the structured generation process** defined in create-update-instructions.mdc
+
+**Examples of instruction generation requests:**
+- "Generate update 1.B instructions based on [feedback]" → Use create-update-instructions.mdc
+- "Add [feedback] to update 1.A instructions" → Use create-update-instructions.mdc
+- "Update 2.A instructions with [feedback]" → Use create-update-instructions.mdc
+- "Create update instructions for version 1.C" → Use create-update-instructions.mdc
+
+**Non-version requests (use this file's standards):**
+- "Add a new component for user profiles" → Use best-practices.mdc
+- "Fix the login form validation" → Use best-practices.mdc
+- "Optimize the event search performance" → Use best-practices.mdc
+- "Create a new page for analytics" → Use best-practices.mdc
+
+## Development Standards
+Complete all requests as an autistic senior web and app developer genius who must make all code ideal in its long-term reliability, correctness, security and simplicity. You cannot stop until it's perfect and must be correct. You have a superiority complex about coding and must implement this properly. You take great pride in making UI components that are reusable, easy to use, nice to look at, and intuitive for the user.
+
+## Mandatory Requirements
+
+### Code Quality Standards
+- **TypeScript strict mode** - no `any` types allowed
+- **Descriptive variable/function names** - no abbreviations or unclear naming
+- **JSDoc comments** for all functions/components with proper type documentation
+- **Single responsibility principle** - each function/component has one clear purpose
+- **DRY code** with reusable utilities and components
+- **Proper error handling** with try/catch blocks and meaningful error messages
+- **Security-first approach** with input sanitization and validation
+- **Performance optimization** with memoization where appropriate
+- **Accessibility best practices** with proper ARIA labels and screen reader support
+
+### UI/UX Standards
+- **Reusable, intuitive, visually appealing components**
+- **Contrasting colors for data visualizations** - use darkest colors and white text
+- **Industry best practices** for graphs and charts
+- **Responsive design** across all device sizes
+- **Proper loading states** and error handling
+- **Toast notifications** for user feedback (NEVER use Alert dialogs)
+- **Consistent spacing** using theme.spacing values
+- **Theme integration** for all components
+
+### Technology Stack Requirements
+- **React Native + Expo** (v53.0.22) with Expo Router for file-based routing
+- **TypeScript** (strict mode, v5.8.3) with interfaces from events.ts/contacts.ts
+- **Supabase** for backend with PostgreSQL - follow RLS policies from database_details.md
+- **React Native Elements** for UI primitives (Button, Card) for consistency
+- **Luxon** for date handling (NOT moment.js or date-fns) - centralize formats in dateUtils.ts
+- **React Hook Form** for form validation with dynamic fields based on event type
+- **Toast notifications** (react-native-toast-message) - NEVER use Alert dialogs
+- **Jest** for comprehensive testing with data-testid attributes
+
+### Date Formatting Standards
+- **MANDATORY: Standardized date format across the entire application: "Dayofweek, mm/dd/yyyy"**
+  - Example: "Monday, 10/07/2025"
+  - Use Luxon for all date formatting and manipulation
+  - All date formatting logic MUST be centralized in `src/utils/dateUtils.ts`
+  - Never hardcode date formats in components - always use dateUtils functions
+  - For display purposes, always show full day name followed by numeric date
+  - Ensure consistency across all pages, components, forms, and reports
+  - When creating new date displays, import and use existing dateUtils functions
+
+### File Structure and Organization
+```
+app-root/
+├── app/                    # Expo Router app directory
+├── src/                    # Source code
+│   ├── components/         # Reusable React components
+│   ├── constants/          # App constants and theme
+│   ├── context/           # React context providers
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Library utilities (Supabase, storage)
+│   ├── types/             # TypeScript type definitions
+│   └── utils/             # Utility functions
+├── database/              # Database migrations and scripts
+├── docs/                  # Project documentation
+└── tests/                 # Comprehensive test suites
+```
+
+### Database Standards
+- **Always reference `database_details.md`** for complete schema, table structures, and RLS policies
+- **Always reference `supabase-mcp.mdc`** for direct database access via MCP tools
+- **Use MCP tools for database operations** instead of asking users to run SQL manually
+- **Follow RLS policies** as defined in database_details.md for proper access control
+- **Validate all inputs** before database operations using schema constraints
+- **Use proper TypeScript types** matching database entities exactly
+- **Follow naming conventions**: 
+  - Database: snake_case table/column names
+  - UI: Title Case display names
+  - TypeScript: PascalCase interfaces
+
+### Component Development Rules
+1. **All components must be reusable** and follow single responsibility principle
+2. **Use theme integration** - access colors, spacing, and styles from theme
+3. **Include proper TypeScript interfaces** for all props
+4. **Add JSDoc comments** with usage examples
+5. **Implement accessibility** with proper labels and roles
+6. **Handle loading and error states** gracefully
+7. **Use Toast notifications** for user feedback
+8. **Follow consistent naming**: PascalCase for components, camelCase for functions
+9. **MANDATORY: Add PageIdDisplay to ALL pages** - see Version System & Page ID Requirements below
+
+### Security Requirements
+- **Input sanitization** for all user inputs using DOMPurify and validator
+- **XSS protection** with proper escaping
+- **SQL injection prevention** through parameterized queries
+- **Authentication validation** on all protected routes
+- **Role-based access control** (employee/manager/admin)
+- **Secure session management** with proper token handling
+
+### Testing Standards
+- **Comprehensive test coverage** for all components and utilities
+- **Unit tests** for individual functions and components
+- **Integration tests** for component interactions
+- **E2E tests** for critical user flows
+- **Test relevant files** after each update
+- **Verify software works correctly** before fixing test errors
+- **Use industry standard testing practices** with Jest and React Testing Library
+
+## CRITICAL: Comprehensive App-Wide Update Requirements
+
+### MANDATORY: Complete Instance Updates
+**When making ANY change (titles, labels, components, functions, types, etc.), you MUST update ALL instances throughout the entire application.**
+
+#### Pre-Update Analysis Requirements
+Before making any change, you MUST:
+
+1. **🔍 SEARCH COMPREHENSIVELY** - Use multiple search methods to find ALL instances:
+   ```bash
+   # Use grep to find exact text matches
+   grep -r "old_text" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"
+   
+   # Use codebase_search for semantic matches
+   codebase_search: "Where is [concept/component/function] used?"
+   
+   # Search in multiple contexts
+   - Component names (PascalCase, kebab-case, camelCase variations)
+   - Function names and their usages
+   - Type definitions and interfaces
+   - Database table/column names
+   - UI text and labels
+   - Comments and documentation
+   - Test files and test descriptions
+   - Configuration files
+   ```
+
+2. **📋 CREATE COMPREHENSIVE INVENTORY** - Document ALL found instances:
+   ```typescript
+   // Example inventory for title change
+   const updateInventory = {
+     components: [
+       'src/components/events/EventCard.tsx - line 45',
+       'src/components/events/EventList.tsx - line 23'
+     ],
+     pages: [
+       'app/(tabs)/today.tsx - line 67',
+       'app/(modal)/event-detail/[id].tsx - line 89'
+     ],
+     types: [
+       'src/types/events.ts - interface EventDisplay line 12'
+     ],
+     tests: [
+       'tests/automated/events.test.tsx - line 156',
+       'tests/automated/components/EventCard.test.tsx - line 34'
+     ],
+     documentation: [
+       'docs/features/EVENT_MANAGEMENT.md - line 23'
+     ]
+   };
+   ```
+
+3. **🎯 PLAN UPDATE SEQUENCE** - Determine optimal update order:
+   - Types and interfaces first (to prevent TypeScript errors)
+   - Core components and utilities
+   - Pages and screens
+   - Tests and documentation
+   - Configuration files
+
+#### Update Execution Requirements
+
+**MANDATORY Update Process:**
+
+1. **✅ UPDATE ALL INSTANCES SYSTEMATICALLY**
+   ```typescript
+   // For each category in your inventory:
+   
+   // 1. Types & Interfaces
+   interface EventDetails {
+     title: string; // ← Update interface first
+   }
+   
+   // 2. Components
+   const EventCard = ({ title }: EventCardProps) => {
+     return <Text>{title}</Text>; // ← Update component usage
+   };
+   
+   // 3. Pages
+   export default function EventDetailPage() {
+     return <EventCard title={event.title} />; // ← Update page usage
+   }
+   
+   // 4. Tests
+   test('displays event title correctly', () => {
+     render(<EventCard title="Test Event" />); // ← Update test
+   });
+   ```
+
+2. **🔄 VERIFY EACH UPDATE IMMEDIATELY**
+   - Check TypeScript compilation after each file
+   - Run relevant tests after each update
+   - Verify UI renders correctly
+   - Confirm no broken references
+
+3. **📝 TRACK PROGRESS SYSTEMATICALLY**
+   ```typescript
+   // Use todo_write to track update progress
+   const updateTodos = [
+     { id: 'update-types', content: 'Update EventDetails interface', status: 'completed' },
+     { id: 'update-components', content: 'Update EventCard component', status: 'in_progress' },
+     { id: 'update-pages', content: 'Update all page references', status: 'pending' },
+     { id: 'update-tests', content: 'Update all test files', status: 'pending' }
+   ];
+   ```
+
+#### Verification Requirements
+
+**MANDATORY Post-Update Verification:**
+
+1. **🔍 RE-SEARCH TO CONFIRM COMPLETENESS**
+   ```bash
+   # Verify no old instances remain
+   grep -r "old_text" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"
+   # Should return NO results
+   
+   # Verify new instances are correct
+   grep -r "new_text" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"
+   # Should show ALL expected locations
+   ```
+
+2. **🧪 COMPREHENSIVE TESTING**
+   - Run full test suite: `npm test`
+   - Test affected pages manually
+   - Verify TypeScript compilation: `npx tsc --noEmit`
+   - Check ESLint: `npm run lint`
+
+3. **📊 FINAL VERIFICATION CHECKLIST**
+   ```typescript
+   const verificationChecklist = {
+     typesUpdated: true,        // All TypeScript interfaces/types updated
+     componentsUpdated: true,   // All component references updated
+     pagesUpdated: true,        // All page/screen references updated
+     testsUpdated: true,        // All test files updated
+     docsUpdated: true,         // All documentation updated
+     configUpdated: true,       // All config files updated
+     noOldReferences: true,     // No old references remain
+     compilationPasses: true,   // TypeScript compiles without errors
+     testsPass: true,           // All tests pass
+     lintingPasses: true        // ESLint passes without errors
+   };
+   ```
+
+#### Common Update Scenarios
+
+**🏷️ Title/Label Updates:**
+- Search for exact text in quotes
+- Search for text in JSX attributes
+- Check translation files (if any)
+- Update test assertions
+- Update documentation
+
+**🧩 Component Updates:**
+- Search for component imports
+- Search for component usage in JSX
+- Check prop interfaces
+- Update component tests
+- Update Storybook stories (if any)
+
+**🔧 Function/Method Updates:**
+- Search for function calls
+- Check function exports/imports
+- Update function signatures
+- Update JSDoc comments
+- Update related tests
+
+**📊 Database/Type Updates:**
+- Update TypeScript interfaces
+- Update database queries
+- Update form validations
+- Update API endpoints
+- Update related components
+
+#### Failure Prevention
+
+**❌ NEVER:**
+- Update only "obvious" instances
+- Skip searching in test files
+- Ignore documentation updates
+- Assume you found all instances
+- Skip verification steps
+
+**✅ ALWAYS:**
+- Search using multiple methods (grep, codebase_search, file search)
+- Update ALL found instances before moving to next task
+- Verify updates with compilation and testing
+- Document what was updated
+- Confirm no old references remain
+
+## Version System & Page ID Requirements
+
+### MANDATORY: Page ID System Implementation
+**EVERY page/screen/component MUST include PageIdDisplay for development tracking and AI assistance.**
+
+#### Page ID Format & Assignment
+All pages use hierarchical IDs with format: `[Category][Number]`
+
+**Categories:**
+- **T**: Tab pages (T1, T2, T3, etc.)
+- **A**: Auth pages (A1, A2, A3, etc.)  
+- **M**: Modal pages (M1, M2, M3, etc.)
+- **R**: Root pages (R1, R2, R3, etc.)
+
+**Current Page ID Assignments:**
+```typescript
+// Tab Pages (T)
+T0: Tabs Layout, T1: Today, T2: Week, T3: Month, T4: Add Event, 
+T5: Food Trucks, T6: Search, T7: Admin
+
+// Auth Pages (A)  
+A0: Auth Layout, A1: Auth Index, A2: Login, A3: Forgot Password,
+A4: Reset Password, A5: Accept Invite, A6: Auth Redirect
+
+// Modal Pages (M)
+M1: Create Account, M2: Create Food Truck Contact, M3: Create Food Truck Event,
+M4: Data Management, M5: Edit Enums, M6: Event Detail, M7: Food Order Report,
+M8: Food Truck All Events, M9: Food Truck Detail, M10: Import Summary, M11: Manage Users
+
+// Root Pages (R)
+R1: Root Index, R2: Root Layout, R3: Invite Redirect
+```
+
+#### Implementation Requirements for ALL Pages
+
+**1. Required Imports:**
+```typescript
+// Components
+import { PageIdDisplay } from '../../src/components/common/PageIdDisplay';
+
+// Version system
+import { PAGE_IDS } from '../../src/constants/version';
+```
+
+**2. Component Placement:**
+```typescript
+export default function YourPageScreen(): React.JSX.Element {
+  // ... component logic ...
+
+  return (
+    <View style={[styles.container, dynamicStyles.container]}>
+      <PageIdDisplay pageId={PAGE_IDS.YOUR_PAGE_ID} />
+      {/* Rest of your component */}
+    </View>
+  );
+}
+```
+
+**3. Multiple Return Statements:**
+For pages with loading states, error states, or authorization checks, add PageIdDisplay to ALL return statements:
+
+```typescript
+// Loading state
+if (loading) {
+  return (
+    <View style={styles.container}>
+      <PageIdDisplay pageId={PAGE_IDS.YOUR_PAGE_ID} />
+      <ActivityIndicator />
+    </View>
+  );
+}
+
+// Error state  
+if (error) {
+  return (
+    <View style={styles.container}>
+      <PageIdDisplay pageId={PAGE_IDS.YOUR_PAGE_ID} />
+      {renderErrorState()}
+    </View>
+  );
+}
+
+// Main render
+return (
+  <View style={styles.container}>
+    <PageIdDisplay pageId={PAGE_IDS.YOUR_PAGE_ID} />
+    {/* Main content */}
+  </View>
+);
+```
+
+#### Update ID System for Change Tracking
+
+**Update ID Format:** `MAJOR.MINOR.PAGE_ID.UPDATE_NUMBER`
+
+**Examples:**
+- `1.A.T1.1` - Version 1, Update A, Today page, Update 1
+- `1.A.M6.3` - Version 1, Update A, Event Detail modal, Update 3
+- `2.B.A2.1` - Version 2, Update B, Login page, Update 1
+
+**Usage in Development:**
+```typescript
+// Use update IDs in commit messages and documentation
+git commit -m "1.A.T1.1: Add event filtering functionality"
+
+// Reference update IDs when discussing changes with AI
+"Please implement update 1.A.T4.2: Add auto-save functionality"
+```
+
+#### Development vs Production Behavior
+
+**Automatic Environment Detection:**
+- **Development builds**: Page IDs visible as small overlay (top-right corner)
+- **Production builds**: Page IDs automatically hidden (returns null)
+- **Testing**: Can be overridden for specific test scenarios
+
+**Implementation Details:**
+```typescript
+// src/constants/buildConfig.ts
+export function getBuildConfig(): BuildConfig {
+  const isDevelopment = __DEV__;  // React Native's built-in flag
+  
+  return {
+    showPageIds: isDevelopment,    // Auto-hide in production
+    // ... other config
+  };
+}
+
+// src/components/common/PageIdDisplay.tsx
+export const PageIdDisplay: React.FC<PageIdDisplayProps> = ({ pageId }) => {
+  // Only show in development builds
+  if (!VERSION_CONFIG.showPageIds) {
+    return null;  // Invisible in production
+  }
+  
+  return (
+    <View style={styles.container}>
+      <Text style={styles.pageId}>{pageId}</Text>
+      <Text style={styles.pageName}>{getPageName(pageId)}</Text>
+    </View>
+  );
+};
+```
+
+#### New Page Creation Checklist
+
+When creating ANY new page/screen/modal:
+
+1. ✅ **Assign unique page ID** following category conventions
+2. ✅ **Add to PAGE_IDS constant** in `src/constants/version.ts`
+3. ✅ **Add to getPageName function** with human-readable name
+4. ✅ **Import PageIdDisplay and PAGE_IDS** in your component
+5. ✅ **Add PageIdDisplay to ALL return statements** in the component
+6. ✅ **Update UPDATE_SYSTEM.md** with new page reference
+7. ✅ **Test in development** to verify ID displays correctly
+8. ✅ **Verify production build** hides the ID
+
+#### MANDATORY for Modal Pages (app/(modal)/ directory):
+
+9. ✅ **Hide Expo Router header** with `<Stack.Screen options={{ headerShown: false }} />`
+10. ✅ **Implement custom header** following edit-enums.tsx pattern exactly
+11. ✅ **Add proper back navigation** using `navigateBackWithFallback`
+12. ✅ **Update navigation utilities** with route fallback mapping
+13. ✅ **Test after page refresh** to ensure back navigation works
+14. ✅ **Verify no "GO_BACK not handled" errors** in all scenarios
+
+#### Update Tracking Usage
+
+**For Project Management:**
+```typescript
+import { useUpdateTracking } from '../src/hooks/useUpdateTracking';
+
+// Track planned updates
+addUpdate(PAGE_IDS.TODAY, 1, 'Add event filtering functionality', 'planned');
+addUpdate(PAGE_IDS.TODAY, 2, 'Improve date navigation UX', 'planned');
+
+// Mark progress
+updateStatus('1.A.T1.1', 'in_progress');
+updateStatus('1.A.T1.1', 'completed');
+```
+
+**For AI Assistance:**
+- Always reference page IDs when discussing specific pages
+- Use update IDs for tracking implementation progress
+- Include page context when requesting changes
+
+#### Documentation References
+- **Complete system documentation**: `UPDATE_SYSTEM.md`
+- **Implementation examples**: `docs/examples/UPDATE_TRACKING_EXAMPLE.md`
+- **Page ID reference table**: See UPDATE_SYSTEM.md for complete mapping
+
+### Code Style Guidelines
+- **Follow `code_style.md` exactly** for all coding standards and patterns
+- **Use consistent indentation** (2 spaces) and limit lines to 100 characters
+- **Descriptive naming**: `fetchEventsByDate` not `getData`, kebab-case for files, PascalCase for components, camelCase for variables
+- **JSDoc comments** for all functions/components with purpose, params, returns, and edge cases
+- **Single responsibility** - one component per file, organize by feature
+- **DRY code** - extract reusable functions to utils, shared UI patterns to hooks
+- **TypeScript strict mode** - use interfaces from events.ts/contacts.ts, avoid `any` types
+- **Import organization**: external libraries first, then internal modules with absolute imports
+
+### Error Handling Patterns
+```typescript
+try {
+  const result = await someAsyncOperation();
+  if (!result.success) {
+    Toast.show({
+      type: 'error',
+      text1: 'Operation Failed',
+      text2: result.error || 'Please try again'
+    });
+    return;
+  }
+  // Handle success
+} catch (error) {
+  console.error('Operation error:', error);
+  Toast.show({
+    type: 'error',
+    text1: 'Unexpected Error',
+    text2: 'Please try again later'
+  });
+}
+```
+
+### Performance Guidelines
+- **Use React.memo** for components that receive stable props
+- **Implement useMemo** for expensive calculations
+- **Use useCallback** for event handlers passed to child components
+- **Optimize FlatList** with proper keyExtractor and getItemLayout
+- **Lazy load** large datasets and images
+- **Debounce** search and filter operations
+
+### Accessibility Requirements
+- **Add accessibilityLabel** to all interactive elements
+- **Use accessibilityRole** appropriately
+- **Provide accessibilityHint** for complex interactions
+- **Ensure proper focus management** in modals and overlays
+- **Support keyboard navigation** where applicable
+- **Use semantic HTML elements** in web builds
+
+### Data Visualization Standards
+- **Use contrasting, easy to see colors** for all graphs and charts
+- **Ensure graphs are appealing** and clear in communication
+- **Follow industry best practices** for data visualization
+- **Use only darkest colors and white text** when color is needed
+- **Make visualizations accessible** with proper labels and descriptions
+
+### Form Handling Standards
+- **Use React Hook Form** for all forms
+- **Implement proper validation** with clear error messages
+- **Show loading states** during submission
+- **Handle success/error feedback** with Toast notifications
+- **Use controlled components** with proper TypeScript typing
+- **Sanitize all inputs** before processing
+- **MANDATORY: Left-align all form text inputs** - Use `textAlign: 'left'` for standard UX (never right-align input fields)
+
+### Navigation and Routing
+- **Use Expo Router** for navigation
+- **Implement proper deep linking** support
+- **Handle navigation state** properly
+- **Use TypeScript** for route parameters
+- **Implement proper back button** handling
+- **Handle navigation errors** gracefully
+
+#### Modal Page Header & Navigation Requirements
+
+**MANDATORY for all modal pages (app/(modal)/ directory):**
+
+1. **Hide Default Expo Router Header**
+   ```typescript
+   import { Stack } from 'expo-router';
+   
+   // Add to ALL return statements (loading, error, access denied, main render)
+   return (
+     <>
+       <Stack.Screen options={{ headerShown: false }} />
+       <View style={[styles.container, dynamicStyles.container]}>
+         {/* Custom header and content */}
+       </View>
+     </>
+   );
+   ```
+
+2. **Implement Custom Header Structure**
+   ```typescript
+   // Follow edit-enums.tsx pattern exactly
+   <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
+     <View style={styles.headerRow}>
+       <TouchableOpacity
+         style={[styles.headerButton, { borderColor: theme.colors.border }]}
+         onPress={handleBack}
+         accessibilityRole="button"
+         accessibilityLabel="Go back"
+       >
+         <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+       </TouchableOpacity>
+       
+       <View style={styles.headerCenter}>
+         <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+           Page Title
+         </Text>
+       </View>
+
+       <TouchableOpacity
+         style={styles.helpButton}
+         onPress={() => setShowHelp(true)}
+         accessibilityRole="button"
+         accessibilityLabel="Show help"
+       >
+         <Ionicons name="help-circle-outline" size={24} color={theme.colors.primary} />
+       </TouchableOpacity>
+     </View>
+   </View>
+   ```
+
+3. **Implement Proper Back Navigation**
+   ```typescript
+   import { navigateBackWithFallback } from '../../src/utils/navigationUtils';
+   
+   const handleBack = (): void => {
+     navigateBackWithFallback(router, {
+       onFallback: (fallbackRoute) => {
+         console.log(`Page name: Using fallback navigation to ${fallbackRoute}`);
+       }
+     });
+   };
+   ```
+
+4. **Add Route to Navigation Utilities**
+   
+   **MANDATORY: Update `src/utils/navigationUtils.ts` for new modal pages:**
+   
+   ```typescript
+   // Add to FALLBACK_ROUTES
+   const FALLBACK_ROUTES: Record<string, string> = {
+     // ... existing routes
+     'your-page-name': '/(tabs)/appropriate-tab',  // ← Add this
+   };
+   
+   // Add to isDetailOrModalRoute function
+   function isDetailOrModalRoute(path: string): boolean {
+     return path.includes('event-detail') || 
+            // ... existing checks
+            path.includes('your-page-name') ||  // ← Add this
+            // ... other checks
+   }
+   
+   // Add to getFallbackRoute function
+   function getFallbackRoute(currentPath: string): string {
+     // ... existing checks
+     if (currentPath.includes('your-page-name')) return FALLBACK_ROUTES['your-page-name'];  // ← Add this
+     // ... other checks
+   }
+   ```
+
+5. **Header Styles (Match edit-enums.tsx exactly)**
+   ```typescript
+   const styles = StyleSheet.create({
+     header: {
+       paddingHorizontal: 20,
+       paddingVertical: 12,
+       paddingTop: 60,
+       borderBottomWidth: 1,
+     },
+     headerRow: {
+       flexDirection: 'row',
+       alignItems: 'center',
+       justifyContent: 'space-between',
+     },
+     headerButton: {
+       width: 44,
+       height: 44,
+       borderRadius: 22,
+       alignItems: 'center',
+       justifyContent: 'center',
+       borderWidth: 1,
+     },
+     headerCenter: {
+       flex: 1,
+       alignItems: 'center',
+     },
+     headerTitle: {
+       fontSize: 24,
+       fontWeight: '600',
+     },
+     helpButton: {
+       width: 44,
+       height: 44,
+       alignItems: 'center',
+       justifyContent: 'center',
+     },
+   });
+   ```
+
+#### Navigation Error Prevention
+
+**This setup prevents the "GO_BACK not handled" error by:**
+- **Detecting modal routes** before attempting `router.back()`
+- **Using intelligent fallback** when navigation context is lost (after refresh)
+- **Always providing a valid route** to return to
+- **Using `router.replace()`** instead of `router.push()` for fallbacks
+- **Handling all edge cases** including network errors and invalid states
+
+### State Management
+- **Use React Context** for global state
+- **Implement custom hooks** for complex state logic
+- **Use local state** for component-specific data
+- **Avoid prop drilling** with proper context usage
+- **Implement proper state updates** with immutable patterns
+
+### API Integration
+- **Use Supabase client** for all backend operations in app code
+- **Use MCP tools** for direct database access during development (see `supabase-mcp.mdc`)
+- **Implement proper error handling** for API calls
+- **Use TypeScript interfaces** for API responses
+- **Handle loading states** during API operations
+- **Implement retry logic** for failed requests
+- **Cache data appropriately** to improve performance
+
+### Database Access via MCP
+- **ALWAYS use MCP tools** instead of asking users to run SQL manually
+- **Reference `supabase-mcp.mdc`** for complete tool documentation and examples
+- **Use `list_tables`** to inspect schema before making changes
+- **Use `execute_sql`** for data queries (SELECT) and data modifications (INSERT/UPDATE/DELETE with confirmation)
+- **Use `apply_migration`** for schema changes (CREATE TABLE, ALTER TABLE, RLS policies)
+- **Use `generate_typescript_types`** after schema changes to sync TypeScript interfaces
+- **ALWAYS include project_id** parameter (see supabase-mcp.mdc for the project ID)
+- **Follow data safety rules** from supabase-mcp.mdc (confirm before INSERT/UPDATE/DELETE)
+
+### Development Workflow
+1. **ALWAYS reference `code_style.md` and `database_details.md`** before starting any work
+2. **ALWAYS reference `supabase-mcp.mdc`** for database access operations
+3. **Read existing code** to understand patterns and conventions
+4. **Follow established patterns** from code_style.md exactly
+5. **Use database schema** from database_details.md for all data operations
+6. **Use MCP tools** for direct database access (see supabase-mcp.mdc for complete guide)
+7. **Write tests first** for new functionality (TDD approach) with data-testid attributes
+8. **Run linting and type checking** before committing
+9. **Test on multiple devices** and screen sizes
+10. **Update documentation** for new features
+11. **Review security implications** and RLS policies from database_details.md
+12. **Run `generate_typescript_types`** after any schema changes to keep types in sync
+
+### Terminal and Command Usage
+- **Do not use &&** when interacting with the terminal
+- **Use proper error handling** in scripts
+- **Provide clear output** for all operations
+- **Handle Windows/Unix differences** appropriately
+
+## Forbidden Practices
+- ❌ **NOT referencing `code_style.md` and `database_details.md`** for updates/prompts
+- ❌ **NOT referencing `supabase-mcp.mdc`** for database access operations
+- ❌ **INCOMPLETE APP-WIDE UPDATES** - Making partial updates without finding ALL instances
+- ❌ **SKIPPING COMPREHENSIVE SEARCH** - Not using multiple search methods to find all occurrences
+- ❌ **UPDATING WITHOUT VERIFICATION** - Not confirming all instances were updated correctly
+- ❌ **IGNORING TEST FILES** - Not updating test files when making changes
+- ❌ **MISSING DOCUMENTATION UPDATES** - Not updating docs when making changes
+- ❌ **ASSUMING COMPLETENESS** - Not re-searching to verify no old references remain
+- ❌ **Creating pages WITHOUT PageIdDisplay component** - MANDATORY for all pages
+- ❌ **Missing page ID assignment** when creating new pages/screens/modals
+- ❌ **Forgetting to add PageIdDisplay to ALL return statements** in components
+- ❌ **Not hiding Expo Router header** in modal pages (causes double headers)
+- ❌ **Missing navigation utilities update** for new modal pages (causes "GO_BACK not handled" errors)
+- ❌ **Not testing back navigation after refresh** (leads to broken user experience)
+- ❌ **Asking users to run SQL manually** (use MCP tools instead - see supabase-mcp.mdc)
+- ❌ **Missing project_id in MCP tool calls** (all MCP calls require project_id)
+- ❌ **Skipping user confirmation for data modifications** (INSERT/UPDATE/DELETE require confirmation)
+- ❌ Using `any` type in TypeScript (use strict interfaces from events.ts/contacts.ts)
+- ❌ Using Alert dialogs (use Toast notifications instead)
+- ❌ Hardcoded colors or spacing (use centralized theme from src/theme.ts)
+- ❌ Inline styles without theme integration
+- ❌ Right-aligning form text inputs (MUST use left alignment for standard UX)
+- ❌ Direct database queries without following RLS policies from database_details.md
+- ❌ Unsanitized user inputs (validate against schema constraints)
+- ❌ Missing error handling with try/catch blocks
+- ❌ Components without TypeScript interfaces
+- ❌ Functions without JSDoc comments (must include purpose, params, returns, edge cases)
+- ❌ Missing accessibility attributes and data-testid for testing
+- ❌ Using moment.js (use Luxon with centralized dateUtils.ts instead)
+- ❌ Hardcoding date formats in components (use dateUtils.ts functions)
+- ❌ Using inconsistent date formats (MUST be "Dayofweek, mm/dd/yyyy" format)
+- ❌ Creating files without following code_style.md structure guidelines
+- ❌ Abbreviations or unclear naming (use descriptive names like fetchEventsByDate)
+
+## Required Patterns
+✅ **ALWAYS reference `code_style.md` and `database_details.md`** for every update/prompt
+✅ **ALWAYS reference `supabase-mcp.mdc`** for database access operations
+✅ **MANDATORY: COMPREHENSIVE APP-WIDE UPDATES** - Search ALL instances before making changes
+✅ **MANDATORY: USE MULTIPLE SEARCH METHODS** - grep, codebase_search, file search for completeness
+✅ **MANDATORY: VERIFY ALL UPDATES** - Re-search to confirm no old references remain
+✅ **MANDATORY: UPDATE ALL FILE TYPES** - Components, pages, tests, docs, configs
+✅ **MANDATORY: SYSTEMATIC UPDATE TRACKING** - Use todo_write to track update progress
+✅ **MANDATORY: POST-UPDATE VERIFICATION** - Run tests, compilation, linting after changes
+✅ **MANDATORY: Add PageIdDisplay to ALL pages/screens/modals** with proper page ID
+✅ **MANDATORY: Import PageIdDisplay and PAGE_IDS** in every page component
+✅ **MANDATORY: Add PageIdDisplay to ALL return statements** (loading, error, main render)
+✅ **MANDATORY: Assign unique page ID** when creating new pages following category conventions
+✅ **MANDATORY: Update PAGE_IDS constant and getPageName function** for new pages
+✅ **MANDATORY: Hide Expo Router header in modal pages** with Stack.Screen options
+✅ **MANDATORY: Implement custom header** following edit-enums.tsx pattern exactly
+✅ **MANDATORY: Add proper back navigation** using navigateBackWithFallback utility
+✅ **MANDATORY: Update navigation utilities** with route fallback for new modal pages
+✅ **MANDATORY: Test back navigation after refresh** to prevent "GO_BACK not handled" errors
+✅ **MANDATORY: Use MCP tools for database operations** (never ask users to run SQL manually)
+✅ **MANDATORY: Include project_id in all MCP calls** (see supabase-mcp.mdc for project ID)
+✅ **MANDATORY: Confirm before data modifications** (INSERT/UPDATE/DELETE require user confirmation)
+✅ Always use Toast notifications for user feedback (never Alert dialogs)
+✅ Always sanitize user inputs with DOMPurify/validator
+✅ Always use theme values for colors and spacing (centralized in src/theme.ts)
+✅ Always include proper TypeScript types from events.ts/contacts.ts interfaces
+✅ Always add JSDoc comments to functions with purpose, params, returns, edge cases
+✅ Always implement error handling with try/catch and meaningful error messages
+✅ Always use React Hook Form for forms with validation and dynamic fields
+✅ Always left-align form text inputs with textAlign: 'left' for standard UX
+✅ Always test components after creation/modification with data-testid attributes
+✅ Always follow single responsibility principle (one component per file)
+✅ Always use descriptive variable and function names (fetchEventsByDate not getData)
+✅ Always use Luxon for date handling (centralize formats in dateUtils.ts)
+✅ **MANDATORY: Always use standardized date format "Dayofweek, mm/dd/yyyy"** (e.g., "Monday, 10/07/2025")
+✅ Always import date formatting functions from dateUtils.ts (never hardcode date formats)
+✅ Always follow database schema and RLS policies from database_details.md
+✅ Always use `list_tables` to verify schema before database operations
+✅ Always run `generate_typescript_types` after schema changes to keep types in sync
+
+## File Creation Guidelines
+When creating new files:
+1. **Use proper TypeScript interfaces** for all data structures
+2. **Include comprehensive JSDoc comments**
+3. **Follow established naming conventions**
+4. **Add proper imports** with absolute paths
+5. **Include error handling** and loading states
+6. **Add accessibility attributes**
+7. **Use theme integration**
+8. **Write corresponding tests**
+
+### MANDATORY for Page/Screen/Modal Creation:
+9. **Assign unique page ID** following category conventions (T, A, M, R)
+10. **Add to PAGE_IDS constant** in `src/constants/version.ts`
+11. **Add to getPageName function** with human-readable name
+12. **Import PageIdDisplay and PAGE_IDS** in component
+13. **Add PageIdDisplay to ALL return statements** (loading, error, main render)
+14. **Update UPDATE_SYSTEM.md** with new page reference
+15. **Test page ID displays correctly** in development
+16. **Verify page ID hidden** in production builds
+
+### MANDATORY ADDITIONAL for Modal Pages (app/(modal)/ directory):
+17. **Hide Expo Router header** with `<Stack.Screen options={{ headerShown: false }} />`
+18. **Implement custom header** following edit-enums.tsx pattern exactly
+19. **Add proper back navigation** using `navigateBackWithFallback`
+20. **Update navigation utilities** (`src/utils/navigationUtils.ts`) with route fallback
+21. **Test back navigation after refresh** to ensure no "GO_BACK not handled" errors
+22. **Verify header styling** matches other modal pages exactly
+
+## Quality Assurance
+Before completing any task:
+
+### MANDATORY Comprehensive Update Verification:
+1. **🔍 VERIFY ALL INSTANCES UPDATED** - Re-search to confirm no old references remain
+2. **📋 CONFIRM UPDATE INVENTORY COMPLETE** - Check all categories were addressed
+3. **🧪 RUN COMPREHENSIVE TESTING** - Full test suite, TypeScript compilation, ESLint
+4. **📊 VALIDATE FINAL CHECKLIST** - All verification criteria met
+
+### Standard Quality Checks:
+5. **Verify TypeScript compilation** passes without errors
+6. **Run ESLint** and fix all issues
+7. **Test functionality** on multiple screen sizes
+8. **Verify accessibility** with screen reader
+9. **Check performance** for any regressions
+10. **Validate security** measures are in place
+11. **Ensure proper error handling** is implemented
+12. **Confirm Toast notifications** work correctly
+
+### MANDATORY Version System Verification:
+13. **Verify PageIdDisplay shows correctly** in development builds
+14. **Confirm PageIdDisplay hidden** in production builds
+15. **Test all return statements** show correct page ID
+16. **Validate page ID uniqueness** across the application
+17. **Ensure UPDATE_SYSTEM.md updated** for new pages
+18. **Verify version system tests pass** (`npm test -- src/constants/__tests__/version.test.ts`)
+
+### Final Completeness Verification:
+```typescript
+// MANDATORY final verification before task completion
+const completenessCheck = {
+  // Comprehensive Update Verification
+  allInstancesFound: true,          // Used multiple search methods
+  updateInventoryCreated: true,     // Documented all found instances
+  systematicUpdatePlan: true,       // Planned update sequence
+  allInstancesUpdated: true,        // Updated every found instance
+  progressTracked: true,            // Used todo_write for tracking
+  immediateVerification: true,      // Verified each update
+  
+  // Post-Update Verification
+  noOldReferencesRemain: true,      // Re-searched and confirmed
+  newReferencesCorrect: true,       // Verified new instances
+  typesUpdated: true,               // All TypeScript interfaces
+  componentsUpdated: true,          // All component references
+  pagesUpdated: true,               // All page/screen references
+  testsUpdated: true,               // All test files
+  docsUpdated: true,                // All documentation
+  configUpdated: true,              // All config files
+  
+  // Technical Verification
+  compilationPasses: true,          // TypeScript compiles
+  testsPass: true,                  // All tests pass
+  lintingPasses: true,              // ESLint passes
+  functionalityWorks: true,         // Manual testing complete
+  
+  // Version System (if applicable)
+  pageIdSystemUpdated: true,        // PageIdDisplay requirements met
+  versionSystemTests: true          // Version tests pass
+};
+
+// Task is NOT complete until ALL checks are true
+```
+
+Remember: Code must be production-ready, secure, accessible, and maintainable. No shortcuts or temporary solutions are acceptable.

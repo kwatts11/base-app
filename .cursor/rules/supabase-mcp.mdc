@@ -1,0 +1,240 @@
+---
+description: Supabase MCP tools available for direct database access
+alwaysApply: true
+---
+
+# Supabase MCP — Direct Database Access
+
+The Supabase MCP server is connected. Use these tools instead of asking the user to paste SQL into the Supabase web terminal.
+
+## Project Configuration
+
+**Project ID:** `YOUR_PROJECT_ID`
+**Project URL:** `https://YOUR_PROJECT_ID.supabase.co`
+**MCP Server Name:** `user-supabase`
+
+**MANDATORY:** All MCP tool calls MUST include the `project_id` parameter.
+
+## Available Tools
+
+| Tool | Use For | Requires project_id |
+|------|---------|---------------------|
+| `execute_sql` | Run any SQL query (SELECT, INSERT, UPDATE, DELETE) | Yes |
+| `apply_migration` | Apply schema changes (CREATE TABLE, ALTER TABLE, etc.) | Yes |
+| `list_tables` | Inspect current schema and table structure | Yes |
+| `list_migrations` | View migration history | Yes |
+| `list_extensions` | Check enabled Postgres extensions | Yes |
+| `generate_typescript_types` | Auto-generate types from the live DB schema | Yes |
+| `get_logs` | Debug issues using Supabase logs | Yes |
+| `get_project_url` | Get the project API URL | Yes |
+| `get_publishable_keys` | Get anon/public API keys | Yes |
+
+## How to Call MCP Tools
+
+All MCP tools are accessed using the `CallMcpTool` function with three required parameters:
+
+```typescript
+CallMcpTool({
+  server: "user-supabase",           // MCP server name
+  toolName: "tool_name_here",        // Name of the tool to call
+  arguments: {                        // Tool-specific arguments
+    project_id: "YOUR_PROJECT_ID",
+    // ... other tool-specific parameters
+  }
+})
+```
+
+### Example: List All Tables
+
+```typescript
+CallMcpTool({
+  server: "user-supabase",
+  toolName: "list_tables",
+  arguments: {
+    project_id: "YOUR_PROJECT_ID"
+  }
+})
+```
+
+**Returns:** Complete schema information including table names, columns, data types, constraints, RLS status, and row counts.
+
+### Example: Execute SQL Query
+
+```typescript
+// Read-only SELECT query
+CallMcpTool({
+  server: "user-supabase",
+  toolName: "execute_sql",
+  arguments: {
+    project_id: "YOUR_PROJECT_ID",
+    sql: "SELECT * FROM your_table WHERE created_at >= NOW() ORDER BY created_at LIMIT 10"
+  }
+})
+```
+
+### Example: Apply Database Migration
+
+```typescript
+CallMcpTool({
+  server: "user-supabase",
+  toolName: "apply_migration",
+  arguments: {
+    project_id: "YOUR_PROJECT_ID",
+    name: "add_new_column",
+    sql: "ALTER TABLE your_table ADD COLUMN new_column TEXT;"
+  }
+})
+```
+
+### Example: Generate TypeScript Types
+
+```typescript
+CallMcpTool({
+  server: "user-supabase",
+  toolName: "generate_typescript_types",
+  arguments: {
+    project_id: "YOUR_PROJECT_ID"
+  }
+})
+```
+
+## When to Use These Tools
+
+### Schema Inspection & Validation
+- **list_tables** → Get complete schema before making changes
+- **list_migrations** → Check migration history before applying new migrations
+- **list_extensions** → Verify required Postgres extensions are enabled
+
+### Database Queries & Data Operations
+- **execute_sql** → Run SELECT queries to inspect data
+- **execute_sql** → Run INSERT/UPDATE/DELETE (with user confirmation - see safety rules)
+- **Reference `database_details.md`** for table names, columns, and constraints
+
+### Schema Changes & Migrations
+- **apply_migration** → Add/modify tables, columns, constraints, indexes
+- **apply_migration** → Add/modify RLS policies
+- **apply_migration** → Create/update functions and triggers
+- **generate_typescript_types** → Sync TypeScript types after schema changes
+
+### Debugging & Monitoring
+- **get_logs** → View Supabase logs for errors and debugging
+- **get_project_url** → Get current project API endpoint
+- **get_publishable_keys** → Get anon/service role keys
+
+## Common Query Patterns
+
+### Inspect Table Data
+```sql
+-- Get recent records
+SELECT id, created_at 
+FROM your_table 
+ORDER BY created_at DESC 
+LIMIT 20;
+
+-- Check active records
+SELECT id, name, active 
+FROM your_table 
+WHERE active = true;
+
+-- View user profiles
+SELECT id, username, role, active, name 
+FROM user_profiles 
+ORDER BY created_at DESC;
+```
+
+### Check Data Integrity
+```sql
+-- Count records without required relations
+SELECT COUNT(*) 
+FROM your_table 
+WHERE related_id IS NULL;
+```
+
+### Verify Schema Changes
+```sql
+-- Check if column exists
+SELECT column_name, data_type, is_nullable 
+FROM information_schema.columns 
+WHERE table_name = 'your_table' 
+AND column_name = 'new_column';
+
+-- Check RLS policies
+SELECT schemaname, tablename, policyname, permissive, roles, cmd 
+FROM pg_policies 
+WHERE tablename = 'your_table';
+```
+
+## Rules
+
+### Mandatory Practices
+- **ALWAYS use MCP tools** for database work instead of providing SQL for the user to run manually
+- **ALWAYS include project_id** in all MCP tool calls
+- **ALWAYS reference `database_details.md`** for table names, columns, and RLS policies before querying
+- **Use `apply_migration` for DDL** (schema changes like CREATE TABLE, ALTER TABLE)
+- **Use `execute_sql` for DML** (data queries like SELECT, INSERT, UPDATE, DELETE)
+- **After any schema change**, offer to run `generate_typescript_types` to keep types in sync
+- **Name migrations descriptively**: `add_rls_to_user_profiles`, `add_new_feature_table`
+
+### Integration with Development Workflow
+- **Before schema changes**: Check `database_details.md` for existing schema
+- **After schema changes**: Update `database_details.md` with new schema
+- **Always verify**: Use `list_tables` to confirm schema changes applied correctly
+- **Type safety**: Run `generate_typescript_types` after migrations to update TypeScript interfaces
+
+### Error Handling
+```typescript
+// Always handle potential MCP errors
+try {
+  const result = await CallMcpTool({
+    server: "user-supabase",
+    toolName: "execute_sql",
+    arguments: {
+      project_id: "YOUR_PROJECT_ID",
+      sql: "SELECT * FROM your_table LIMIT 10"
+    }
+  });
+  
+  // Process result
+  if (result.error) {
+    console.error('Database query failed:', result.error);
+    // Handle error appropriately
+  }
+} catch (error) {
+  console.error('MCP call failed:', error);
+  // Provide helpful error message to user
+}
+```
+
+## ⚠️ Data Safety — Confirmation Required
+
+**NEVER execute any INSERT, UPDATE, or DELETE without explicit user confirmation first.**
+
+### Before any data-modifying operation:
+1. Show the user the exact SQL that will be run
+2. Clearly describe what data will be affected (which rows, which tables, what values)
+3. Wait for the user to explicitly say "yes", "confirm", "go ahead", or equivalent
+4. Only then execute the operation
+
+### Confirmation prompt format:
+```
+⚠️ This will modify data. Please confirm before I proceed:
+
+**Operation:** [INSERT / UPDATE / DELETE]
+**Table:** [table_name]
+**Rows affected:** [count or description]
+**Exact SQL:**
+[SQL here]
+
+Reply "confirm" to proceed or "cancel" to abort.
+```
+
+### What requires confirmation:
+- ❌ INSERT — adding any new rows
+- ❌ UPDATE — modifying any existing data
+- ❌ DELETE — removing any rows
+- ❌ TRUNCATE — clearing a table
+
+### What does NOT require confirmation:
+- ✅ SELECT queries (read-only)
+- ✅ Schema changes via `apply_migration` (DDL only, no data modification)
+- ✅ `list_tables`, `get_logs`, and other read-only tools
