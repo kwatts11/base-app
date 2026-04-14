@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "APP_NAME",
+    "slug": "app-slug",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121212"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#121212"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/pwa-icons/favicon.ico",
+      "name": "APP_NAME",
+      "shortName": "APP_NAME",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#121212",
+      "backgroundColor": "#121212",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "bundler": "metro",
+      "preferRelatedApplications": false,
+      "relatedApplications": [],
+      "crossorigin": "use-credentials",
+      "output": "static",
+      "serviceWorker": {
+        "enabled": true,
+        "scope": "/",
+        "file": "sw.js",
+        "updateViaCache": "none"
+      },
+      "build": {
+        "babel": {
+          "include": [
+            "@expo/vector-icons"
+          ]
+        }
+      },
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default",
+        "apple-mobile-web-app-title": "APP_NAME",
+        "mobile-web-app-capable": "yes",
+        "msapplication-TileColor": "#121212",
+        "msapplication-tap-highlight": "no"
+      },
+      "apple": {
+        "touchIcon": "./assets/pwa-icons/apple-touch-icon-180x180.png",
+        "icon": "./assets/pwa-icons/apple-touch-icon-180x180.png"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}
