@@ -51,8 +51,9 @@ app.on('window-all-closed', () => {
 
 // ── IPC: Choose folder ────────────────────────────────────────────────────────
 ipcMain.handle('wizard:choose-folder', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory', 'createDirectory'],
+  // No parent window — avoids dialog appearing behind the wizard window on Windows
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
     title: 'Choose where to create your new app',
     buttonLabel: 'Select Folder',
   });

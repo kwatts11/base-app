@@ -109,6 +109,28 @@
           <label>Additional Notes <span class="hint">— anything not covered elsewhere</span></label>
           <textarea id="appNotes" placeholder="Special requirements, constraints, integrations…" rows="2"></textarea>
         </div>
+
+        <div class="form-group" style="margin-top:8px">
+          <label style="margin-bottom:8px; display:block">How is your data primarily browsed? <span class="required">*</span></label>
+          <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px">This determines which views are pre-built for you in Step 6.</div>
+          <div class="index-cards" id="indexCards">
+            <div class="index-card" data-index="time">
+              <div class="index-card-icon">📅</div>
+              <div class="index-card-title">By Time</div>
+              <div class="index-card-desc">Events, classes, shifts, appointments. Day / Week / Month views.</div>
+            </div>
+            <div class="index-card" data-index="location">
+              <div class="index-card-icon">📍</div>
+              <div class="index-card-title">By Location</div>
+              <div class="index-card-desc">Venues, check-ins, service areas. Map + list views.</div>
+            </div>
+            <div class="index-card" data-index="custom">
+              <div class="index-card-icon">⚙️</div>
+              <div class="index-card-title">Custom</div>
+              <div class="index-card-desc">Define your own browsing pattern. No pre-selections.</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="screen" id="screen-2">
@@ -119,7 +141,8 @@
 
         <!-- Logo upload -->
         <div class="card">
-          <div class="card-title">Logo</div>
+          <div class="card-title">Logo <span class="required">*</span></div>
+          <div id="logoRequiredHint" class="status-row error" style="margin-bottom:10px; display:none">A logo is required — it's used to generate app icons at all sizes.</div>
           <div class="logo-drop" id="logoDrop">
             <input type="file" id="logoInput" accept="image/*" />
             <div id="logoDropContent">
@@ -158,6 +181,12 @@
         <!-- Color fields -->
         <div class="card">
           <div class="card-title">Colors</div>
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600">Quick themes — or customize each color below</div>
+            <div id="themeCards" style="display:flex; gap:8px; flex-wrap:wrap">
+              <!-- Populated by JS -->
+            </div>
+          </div>
           <div class="color-fields" id="colorFields">
             <!-- Populated by JS -->
           </div>
@@ -295,25 +324,7 @@
       <div class="screen" id="screen-6">
         <div class="screen-header">
           <h2>Tab Structure</h2>
-          <p>Choose how your data is primarily browsed — this pre-selects the relevant views. Adjust as needed.</p>
-        </div>
-
-        <div class="index-cards" id="indexCards">
-          <div class="index-card" data-index="time">
-            <div class="index-card-icon">📅</div>
-            <div class="index-card-title">By Time</div>
-            <div class="index-card-desc">Events, classes, shifts, appointments. Day / Week / Month views.</div>
-          </div>
-          <div class="index-card" data-index="location">
-            <div class="index-card-icon">📍</div>
-            <div class="index-card-title">By Location</div>
-            <div class="index-card-desc">Venues, check-ins, service areas. Map + list views.</div>
-          </div>
-          <div class="index-card" data-index="custom">
-            <div class="index-card-icon">⚙️</div>
-            <div class="index-card-title">Custom</div>
-            <div class="index-card-desc">Define your own browsing pattern. No pre-selections.</div>
-          </div>
+          <p>Based on your indexing choice in Step 1, relevant views are pre-selected. Adjust as needed.</p>
         </div>
 
         <div class="tabs-checklist" id="tabsChecklist">
@@ -443,8 +454,11 @@
             <label>Resend API Key</label>
             <input type="password" id="resendApiKey" placeholder="re_xxxxxxxxxxxxxxxxxxxx" />
           </div>
-          <div class="status-row info" style="margin-top:0">
-            Free at <a href="#" onclick="window.wizard.openUrl('https://resend.com'); return false;" style="color:var(--primary)">resend.com</a>. Use SMTP settings: host=smtp.resend.com, port=587, user=resend, pass=your-api-key.
+          <div class="status-row info" style="margin-top:0; flex-direction:column; align-items:flex-start; gap:6px">
+            <span>Free tier at <a href="#" onclick="window.wizard.openUrl('https://resend.com'); return false;" style="color:var(--primary)">resend.com</a> — 3,000 emails/month, no credit card.</span>
+            <span style="font-size:12px; color:var(--text-secondary)">
+              Supabase SMTP settings: <code>host=smtp.resend.com</code> &nbsp;·&nbsp; <code>port=587</code> &nbsp;·&nbsp; <code>user=resend</code> &nbsp;·&nbsp; <code>pass=&lt;your API key&gt;</code>
+            </span>
           </div>
         </div>
 

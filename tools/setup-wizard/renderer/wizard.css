@@ -889,9 +889,8 @@ textarea { resize: vertical; min-height: 80px; }
 
 .review-section-body {
   padding: 14px 16px;
-  display: none;
+  display: block;
 }
-.review-section-body.open { display: block; }
 
 .review-row {
   display: flex;

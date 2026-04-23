@@ -6,6 +6,7 @@ const state = {
   logoName: null,
   enumCandidates: [],  // detected from data import
   stepValid: Array(12).fill(false),
+  stepVisited: Array(12).fill(false),  // only show checkmarks after visiting
   indexType: 'time',
   mapboxPublicToken: '',
   mapboxSecretToken: '',
@@ -209,6 +210,34 @@ const PALETTE = [
   { name: 'Warm Gray', hex: '#57534e' },
 ];
 
+/* ── Color themes ────────────────────────────────────────────────────────── */
+const COLOR_THEMES = [
+  {
+    name: 'Indigo Night', icon: '🌙',
+    colors: { primary: '#6366f1', secondary: '#818cf8', accent: '#22c55e', background: '#0f172a', surface: '#1e293b', textPrimary: '#f1f5f9', textSecondary: '#94a3b8' },
+  },
+  {
+    name: 'Ocean', icon: '🌊',
+    colors: { primary: '#0ea5e9', secondary: '#38bdf8', accent: '#f59e0b', background: '#0c1a2e', surface: '#132337', textPrimary: '#e0f2fe', textSecondary: '#7dd3fc' },
+  },
+  {
+    name: 'Forest', icon: '🌿',
+    colors: { primary: '#16a34a', secondary: '#4ade80', accent: '#fbbf24', background: '#0a1a0f', surface: '#0f2d19', textPrimary: '#dcfce7', textSecondary: '#86efac' },
+  },
+  {
+    name: 'Sunset', icon: '🌅',
+    colors: { primary: '#f97316', secondary: '#fb923c', accent: '#6366f1', background: '#1a0c06', surface: '#2d1710', textPrimary: '#fff7ed', textSecondary: '#fed7aa' },
+  },
+  {
+    name: 'Rose', icon: '🌹',
+    colors: { primary: '#e11d48', secondary: '#fb7185', accent: '#8b5cf6', background: '#180810', surface: '#2d0e1e', textPrimary: '#ffe4e6', textSecondary: '#fda4af' },
+  },
+  {
+    name: 'Slate Light', icon: '☀️',
+    colors: { primary: '#6366f1', secondary: '#818cf8', accent: '#22c55e', background: '#f8fafc', surface: '#ffffff', textPrimary: '#0f172a', textSecondary: '#475569' },
+  },
+];
+
 const COLOR_FIELDS = [
   { key: 'primary',       label: 'Primary',        default: '#6366f1' },
   { key: 'secondary',     label: 'Secondary',      default: '#818cf8' },
@@ -268,9 +297,10 @@ function updateSidebar() {
     const el = document.getElementById(`sidebar-step-${s.id}`);
     const check = document.getElementById(`stepcheck-${s.id}`);
     if (!el) return;
+    const done = state.stepValid[s.id - 1] && state.stepVisited[s.id - 1];
     el.classList.toggle('active', state.currentScreen === s.id);
-    el.classList.toggle('completed', state.stepValid[s.id - 1]);
-    check.classList.toggle('hidden', !state.stepValid[s.id - 1]);
+    el.classList.toggle('completed', done);
+    check.classList.toggle('hidden', !done);
   });
 
   const completed = state.stepValid.slice(0, 10).filter(Boolean).length;
@@ -280,6 +310,10 @@ function updateSidebar() {
 
 /* ── Screen navigation ───────────────────────────────────────────────────── */
 function goToScreen(n) {
+  // Mark the screen we're leaving as visited
+  if (typeof state.currentScreen === 'number' && state.currentScreen >= 1 && state.currentScreen <= 11) {
+    state.stepVisited[state.currentScreen - 1] = true;
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const screenId = n === 'done' ? 'screen-done' : `screen-${n}`;
   document.getElementById(screenId).classList.add('active');
@@ -301,8 +335,9 @@ function goToScreen(n) {
     updateNavHint(n);
   }
 
-  // Refresh panels whenever user returns to step 6
+  // Refresh tab checklist + panels whenever user reaches step 6
   if (n === 6) setTimeout(() => {
+    buildTabChecklist(state.indexType);
     renderMapboxPanel(state.indexType);
     renderFieldWarning(state.indexType);
   }, 50);
@@ -310,12 +345,12 @@ function goToScreen(n) {
 
 function updateNavHint(n) {
   const hints = {
-    1: 'Define your app\'s name and identity.',
+    1: 'Define your app\'s name, identity, and indexing type.',
     2: 'Upload a logo and choose your color palette.',
     3: 'Define your core data entity.',
     4: 'Configure access roles.',
     5: 'Set up dropdown/tag categories.',
-    6: 'Choose the tab structure.',
+    6: 'Adjust the tabs for your app.',
     7: 'Set email "from" details.',
     8: 'Enter Supabase credentials.',
     9: 'Choose an email provider.',
@@ -424,12 +459,24 @@ function autoSlug() {
 function initScreen1() {
   document.getElementById('appName').addEventListener('input', () => {
     autoSlug();
-    // sync sender name placeholder
     const sn = document.getElementById('emailSenderName');
     if (sn && !sn.value) sn.placeholder = document.getElementById('appName').value || 'App Name';
   });
   document.getElementById('appSlug').addEventListener('input', () => validateStep(1));
   document.getElementById('appTagline').addEventListener('input', () => validateStep(1));
+
+  // Index type selection (moved here from Step 6 so it informs Step 3 data model)
+  document.getElementById('indexCards').querySelectorAll('.index-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#indexCards .index-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.indexType = card.dataset.index;
+      // Rebuild tab checklist in step 6 immediately
+      buildTabChecklist(card.dataset.index);
+    });
+  });
+  // Default: time
+  document.querySelector('#indexCards .index-card[data-index="time"]').classList.add('selected');
 }
 
 /* ── Screen 2: Branding ──────────────────────────────────────────────────── */
@@ -556,8 +603,46 @@ function setColor(key, hex) {
   if (label) label.textContent = hex;
 }
 
+function buildThemeSection() {
+  const container = document.getElementById('themeCards');
+  if (!container) return;
+  container.innerHTML = COLOR_THEMES.map((t, i) => `
+    <div class="theme-card" data-theme="${i}" title="${t.name}" style="
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      padding:10px 8px; border-radius:var(--radius); border:2px solid var(--border);
+      cursor:pointer; transition:border-color var(--transition); min-width:80px; text-align:center;
+    ">
+      <div style="display:flex; gap:3px; margin-bottom:2px">
+        ${['primary','accent','background'].map(k => `<span style="width:16px;height:16px;border-radius:50%;background:${t.colors[k]};border:1px solid rgba(255,255,255,0.15)"></span>`).join('')}
+      </div>
+      <span style="font-size:12px; font-weight:600; color:var(--text)">${t.name}</span>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', () => {
+      container.querySelectorAll('.theme-card').forEach(c => c.style.borderColor = 'var(--border)');
+      card.style.borderColor = 'var(--primary)';
+      const theme = COLOR_THEMES[parseInt(card.dataset.theme)];
+      Object.entries(theme.colors).forEach(([key, hex]) => {
+        colorValues[key] = hex;
+        const preview = document.getElementById(`colorpreview-${key}`);
+        const label = document.getElementById(`colorlabel-${key}`);
+        const picker = document.getElementById(`colorpicker-${key}`);
+        const hexInput = document.getElementById(`colorhex-${key}`);
+        if (preview) preview.style.background = hex;
+        if (label) label.textContent = hex;
+        if (picker) picker.value = hex;
+        if (hexInput) hexInput.value = hex;
+        markPaletteSelected(key, hex);
+      });
+    });
+  });
+}
+
 function initScreen2() {
   buildColorFields();
+  buildThemeSection();
 
   const logoDrop = document.getElementById('logoDrop');
   const logoInput = document.getElementById('logoInput');
@@ -580,7 +665,14 @@ function initScreen2() {
     reader.readAsDataURL(file);
   }
 
-  logoInput.addEventListener('change', e => handleFile(e.target.files[0]));
+  function validateLogo() {
+    state.stepValid[1] = !!state.logoData;
+    updateSidebar();
+    const hint = document.getElementById('logoRequiredHint');
+    if (hint) hint.style.display = state.logoData ? 'none' : '';
+  }
+
+  logoInput.addEventListener('change', e => { handleFile(e.target.files[0]); validateLogo(); });
 
   logoDrop.addEventListener('dragover', e => { e.preventDefault(); logoDrop.classList.add('drag-over'); });
   logoDrop.addEventListener('dragleave', () => logoDrop.classList.remove('drag-over'));
@@ -588,6 +680,7 @@ function initScreen2() {
     e.preventDefault();
     logoDrop.classList.remove('drag-over');
     handleFile(e.dataTransfer.files[0]);
+    validateLogo();
   });
 
   removeBtn.addEventListener('click', () => {
@@ -596,10 +689,8 @@ function initScreen2() {
     logoPreview.classList.remove('visible');
     document.getElementById('logoDropContent').style.display = '';
     logoInput.value = '';
+    validateLogo();
   });
-
-  state.stepValid[1] = true;
-  updateSidebar();
 }
 
 /* ── Screen 3: Data Model ────────────────────────────────────────────────── */
@@ -976,23 +1067,11 @@ function renderFieldWarning(indexType) {
 }
 
 function initScreen6() {
-  document.getElementById('indexCards').querySelectorAll('.index-card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.index-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      buildTabChecklist(card.dataset.index);
-      renderMapboxPanel(card.dataset.index);
-      renderFieldWarning(card.dataset.index);
-    });
-  });
-
-  // Default: time
-  document.querySelector('.index-card[data-index="time"]').classList.add('selected');
-  buildTabChecklist('time');
-  // Render panels after a tick so getFields() can read current DOM
+  // Build tab checklist from the index type already chosen in Step 1
+  buildTabChecklist(state.indexType);
   setTimeout(() => {
-    renderMapboxPanel('time');
-    renderFieldWarning('time');
+    renderMapboxPanel(state.indexType);
+    renderFieldWarning(state.indexType);
   }, 50);
 
   document.getElementById('addCustomTabBtn').addEventListener('click', () => {
@@ -1167,12 +1246,9 @@ function buildReview() {
 
   container.innerHTML = buildReviewWarnings() + sections.map(s => `
     <div class="review-section">
-      <div class="review-section-header" onclick="this.nextElementSibling.classList.toggle('open')">
+      <div class="review-section-header">
         <span class="review-section-title">${s.title}</span>
-        <span style="font-size:12px; color:var(--text-muted)">
-          <a href="#" onclick="event.preventDefault(); event.stopPropagation(); goToScreen(${s.step})" style="color:var(--primary); text-decoration:none">Edit</a>
-          &nbsp;▾
-        </span>
+        <a href="#" onclick="event.preventDefault(); goToScreen(${s.step})" style="font-size:12px; color:var(--primary); text-decoration:none">Edit</a>
       </div>
       <div class="review-section-body">
         ${s.rows.map(([k, v]) => `
@@ -1387,6 +1463,12 @@ function initNav() {
 
   document.getElementById('nextBtn').addEventListener('click', () => {
     const n = state.currentScreen;
+    // Step 2: logo is required, no data-validate inputs
+    if (n === 2 && !state.logoData) {
+      const hint = document.getElementById('logoRequiredHint');
+      if (hint) { hint.style.display = ''; hint.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      return;
+    }
     if (!validateStep(n)) {
       // Highlight missing required fields
       const screen = document.getElementById(`screen-${n}`);
