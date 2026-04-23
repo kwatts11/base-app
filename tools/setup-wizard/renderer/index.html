@@ -183,7 +183,7 @@
           <div class="card-title">Colors</div>
           <div style="margin-bottom:14px">
             <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600">Quick themes — or customize each color below</div>
-            <div id="themeCards" style="display:flex; gap:8px; flex-wrap:wrap">
+            <div id="themeCards" style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px">
               <!-- Populated by JS -->
             </div>
           </div>
@@ -197,6 +197,26 @@
         <div class="screen-header">
           <h2>Data Model</h2>
           <p>Define your core entity — the main "thing" your app manages. Import from a file or start from scratch.</p>
+        </div>
+
+        <!-- Data sensitivity — required, drives AI database access mode -->
+        <div class="card mb-16">
+          <div class="card-title">Data Sensitivity <span class="required">*</span></div>
+          <p class="text-small text-muted" style="margin-bottom:12px">Controls whether Cursor AI can query live data. Choose before continuing — this cannot be changed after setup.</p>
+          <div class="index-cards" id="sensitivityCards" style="grid-template-columns: repeat(2, 1fr)">
+            <div class="index-card" data-sensitivity="standard" id="sensitivityStandardCard">
+              <div class="index-card-icon">🔓</div>
+              <div class="index-card-title">Standard</div>
+              <div class="index-card-desc">AI has full MCP access — can read and write data directly. For internal tools and non-sensitive data.</div>
+            </div>
+            <div class="index-card" data-sensitivity="sensitive" id="sensitivitySensitiveCard">
+              <div class="index-card-icon">🔒</div>
+              <div class="index-card-title">Sensitive</div>
+              <div class="index-card-desc">AI reads schema only — cannot query live data. Required for PII, financial, medical, or regulated data.</div>
+            </div>
+          </div>
+          <!-- Hidden input drives validateStep(3) required check -->
+          <input type="hidden" id="dataSensitivity" data-validate="required" />
         </div>
 
         <div class="form-row cols-2 mb-16">
@@ -435,7 +455,27 @@
             <div class="spinner" id="connSpinner"></div>
             <div id="connStatus"></div>
           </div>
+
+          <!-- Sensitive mode: DB password for schema-only generation (hidden for standard) -->
+          <div id="dbPasswordGroup" style="display:none">
+            <hr class="section-divider" />
+            <div class="form-group">
+              <label>Database Password <span class="required">*</span>
+                <span class="hint">— used only for schema generation, never sent to AI</span>
+              </label>
+              <div class="input-with-badge">
+                <input type="password" id="supabaseDbPassword" placeholder="your-database-password" />
+                <span class="input-badge" style="cursor:pointer" onclick="toggleMask('supabaseDbPassword')">Show</span>
+              </div>
+              <div class="text-small text-muted mt-4">
+                Find in: Supabase Dashboard → Settings → Database → Connection string (the password segment).
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Mode info banner (shown after sensitivity is chosen) -->
+        <div class="status-row info" id="supabaseModeBanner" style="display:none"></div>
       </div>
 
       <div class="screen" id="screen-9">

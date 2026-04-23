@@ -228,6 +228,44 @@ export const MAPBOX_ACCESS_TOKEN = '${mapboxToken}';
       });
     }
 
+    // 8b. Data sensitivity — configure AI database access mode
+    const isSensitive = formData.dataModel?.dataSensitive === true;
+    const supabaseProjectId = formData.supabase?.projectId || 'YOUR_PROJECT_ID';
+    const cursorRulesDir = path.join(targetDir, '.cursor', 'rules');
+    fs.mkdirSync(cursorRulesDir, { recursive: true });
+
+    if (isSensitive) {
+      // Write restricted supabase-mcp.mdc with project ID already filled in
+      fs.writeFileSync(
+        path.join(cursorRulesDir, 'supabase-mcp.mdc'),
+        buildSensitiveSupabaseMdc(supabaseProjectId),
+        'utf8'
+      );
+      // Write database-access-mode.mdc override rule
+      fs.writeFileSync(
+        path.join(cursorRulesDir, 'database-access-mode.mdc'),
+        buildDatabaseAccessModeMdc(),
+        'utf8'
+      );
+    } else {
+      // Standard mode: remove sensitive-only files from the clone
+      const sensitiveFiles = [
+        path.join(targetDir, 'scripts', 'generate-schema.mjs'),
+      ];
+      sensitiveFiles.forEach(f => {
+        if (fs.existsSync(f)) fs.rmSync(f, { force: true });
+      });
+      // Remove db:schema from package.json
+      const pkgPath = path.join(targetDir, 'package.json');
+      if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.scripts && pkg.scripts['db:schema']) {
+          delete pkg.scripts['db:schema'];
+          fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+        }
+      }
+    }
+
     // Remove tools/ from the new project
     const toolsDir = path.join(targetDir, 'tools');
     if (fs.existsSync(toolsDir)) {
@@ -414,6 +452,121 @@ ${identity.additionalNotes || ''}
 `;
 }
 
+function buildSensitiveSupabaseMdc(projectId) {
+  return `---
+description: Supabase MCP tools — schema-only access (sensitive mode)
+alwaysApply: true
+---
+
+# Supabase MCP — Schema-Only Access (Sensitive Mode)
+
+This project is configured for **sensitive data**. Cursor AI reads schema from \`database/schema.md\` and does not query live row data.
+
+## Project Configuration
+
+**Project ID:** \`${projectId}\`
+**Project URL:** \`https://${projectId}.supabase.co\`
+**MCP Server Name:** \`user-supabase\`
+
+**MANDATORY:** All MCP tool calls MUST include the \`project_id\` parameter.
+
+## Allowed Tools
+
+| Tool | Use For | Requires project_id |
+|------|---------|---------------------|
+| \`apply_migration\` | Schema changes (CREATE TABLE, ALTER TABLE, RLS policies) | Yes |
+| \`list_migrations\` | View migration history | Yes |
+| \`list_extensions\` | Check enabled Postgres extensions | Yes |
+| \`generate_typescript_types\` | Auto-generate types from live DB schema (DDL only, no row data) | Yes |
+| \`get_logs\` | Debug Supabase logs | Yes |
+| \`get_project_url\` | Get the project API URL | Yes |
+| \`get_publishable_keys\` | Get anon/public API keys | Yes |
+| \`list_tables\` | Inspect schema structure (not for data inspection) | Yes |
+
+## Data Access — PROHIBITED
+
+- **NEVER** use \`execute_sql\` to SELECT from business/user tables
+- **NEVER** use \`list_tables\` to inspect row counts or browse data
+- **Schema understanding:** read \`database/schema.md\` FIRST — always
+- \`execute_sql\` is allowed ONLY for \`information_schema\`/\`pg_catalog\` queries or DDL verification
+- \`generate_typescript_types\`: ALLOWED — reads DDL only, no row data
+
+## Schema Source
+
+Always read \`database/schema.md\` before any database work. This file is auto-generated via \`npm run db:schema\` and committed to the repo.
+
+**After every migration:** run \`npm run db:schema\` and commit the updated \`database/schema.md\`.
+
+## How to Call MCP Tools
+
+\`\`\`typescript
+CallMcpTool({
+  server: "user-supabase",
+  toolName: "apply_migration",
+  arguments: {
+    project_id: "${projectId}",
+    name: "migration_name",
+    sql: "ALTER TABLE ..."
+  }
+})
+\`\`\`
+
+## Rules
+
+- **ALWAYS read \`database/schema.md\`** before making schema changes
+- **ALWAYS use \`apply_migration\`** for DDL (CREATE TABLE, ALTER TABLE, RLS policies)
+- **After schema changes:** run \`npm run db:schema\` to regenerate \`database/schema.md\`, then commit
+- **NEVER execute SELECT queries** on business/user tables — use \`database/schema.md\` for structure reference
+- **\`generate_typescript_types\` is safe** to use — it reads schema DDL only
+
+## ⚠️ Data Safety
+
+**NEVER execute any INSERT, UPDATE, or DELETE without explicit user confirmation first.**
+
+Before any data-modifying operation:
+1. Show the exact SQL that will be run
+2. Describe what data will be affected
+3. Wait for the user to explicitly confirm
+
+**What requires confirmation:** INSERT, UPDATE, DELETE, TRUNCATE
+
+**What does NOT require confirmation:** \`apply_migration\` (DDL), \`generate_typescript_types\`, \`list_tables\`, \`get_logs\`
+`;
+}
+
+function buildDatabaseAccessModeMdc() {
+  return `---
+description: Database access mode — sensitive project override
+alwaysApply: true
+---
+
+# Database Access Mode: SENSITIVE
+
+This rule overrides the database sections of \`best-practices.mdc\` for this sensitive-mode project.
+
+## Schema Source
+
+**Primary schema reference:** \`database/schema.md\` (replaces \`database_details.md\`)
+
+Always read \`database/schema.md\` before any database work. It is auto-generated by \`npm run db:schema\` and committed to the repo.
+
+## Database Access Rules
+
+- **NEVER** use \`execute_sql\` to SELECT from business/user tables
+- **ALWAYS** read \`database/schema.md\` before any DB work
+- \`generate_typescript_types\`: ALLOWED (reads DDL only, no row data)
+- \`apply_migration\`: ALLOWED (DDL only)
+- \`execute_sql\`: ONLY for \`information_schema\`/\`pg_catalog\` queries or schema verification
+
+## After Migrations
+
+1. Apply migration via \`apply_migration\` MCP
+2. Run \`npm run db:schema\` in terminal to regenerate \`database/schema.md\`
+3. Commit the updated \`database/schema.md\`
+4. Run \`generate_typescript_types\` to sync TypeScript types
+`;
+}
+
 function buildEnv(d) {
   const supabase = d.supabase || {};
   const emailProvider = d.emailProvider || {};
@@ -424,6 +577,7 @@ function buildEnv(d) {
 
   const tabs = d.tabs || {};
   const isLocation = (tabs.indexType || 'custom') === 'location';
+  const isSensitive = (d.dataModel || {}).dataSensitive === true;
 
   return `# ==============================================================================
 # ${identity.name || 'base-app'} — Environment Variables
@@ -434,7 +588,11 @@ function buildEnv(d) {
 EXPO_PUBLIC_SUPABASE_URL=https://${supabase.projectId || 'YOUR_PROJECT_ID'}.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=${supabase.anonKey || ''}
 SUPABASE_SERVICE_ROLE_KEY=${supabase.serviceRoleKey || ''}
-SUPABASE_PROJECT_ID=${supabase.projectId || ''}${isLocation ? `
+SUPABASE_PROJECT_ID=${supabase.projectId || ''}${isSensitive ? `
+
+# ── Sensitive mode: schema generation ─────────────────────────────────────────
+# Used by npm run db:schema to generate database/schema.md without exposing data to AI
+SUPABASE_DB_PASSWORD=${supabase.dbPassword || ''}` : ''}${isLocation ? `
 
 # ── Mapbox (location-indexed apps only) ───────────────────────────────────────
 # Public token: already written to src/constants/mapConfig.ts
@@ -473,6 +631,83 @@ export const WIZARD_COMPLETED_ITEMS = ['prd_filled', 'env_configured'] as const;
 `;
 }
 
+function buildSupabaseSetupInstructions(isSensitive, projectId) {
+  if (isSensitive) {
+    return `### Step 4: Supabase MCP is pre-configured
+
+The \`.cursor/rules/supabase-mcp.mdc\` was pre-configured by the Setup Wizard with your project ID and schema-only restrictions. No changes needed — proceed to Step 5.
+
+---
+
+### Step 5: Apply database migrations via Supabase MCP
+
+Use \`apply_migration\` with \`project_id: "${projectId}"\` for each migration **in order**:
+
+1. Read \`database/migrations/001_user_profiles.sql\` → apply as migration named \`001_user_profiles\`
+2. Read \`database/migrations/002_editable_enums.sql\` → apply as migration named \`002_editable_enums\`
+3. Read \`database/migrations/003_rls_policies.sql\` → apply as migration named \`003_rls_policies\`
+
+After applying all three, call \`list_tables\` with \`project_id: "${projectId}"\` to confirm \`user_profiles\` and \`editable_enums\` exist.
+
+---
+
+### Step 6: Generate TypeScript types and schema snapshot
+
+**6a. Generate TypeScript types**
+
+Call \`generate_typescript_types\` with \`project_id: "${projectId}"\`.
+
+Merge the output into \`src/types/database.ts\`:
+- Keep the existing \`UserRole\` enum, \`ROLE_LABELS\`, and all hand-written helper types
+- Add/replace the auto-generated table row types (\`UserProfileRow\`, \`EditableEnumRow\`, etc.)
+- Do not delete any existing exports that are referenced elsewhere in the codebase
+
+**6b. Generate schema snapshot**
+
+Run in terminal: \`npm run db:schema\`
+
+This generates \`database/schema.md\` — the schema reference Cursor reads instead of querying live data. After it completes, commit the file:
+
+\`\`\`bash
+git add database/schema.md
+git commit -m "add: initial database schema snapshot"
+\`\`\`
+
+> This project uses sensitive mode. Cursor reads schema from \`database/schema.md\` and cannot query live row data.`;
+  }
+
+  return `### Step 4: Supabase MCP configuration
+
+Update \`.cursor/rules/supabase-mcp.mdc\` — set:
+- **Project ID:** \`${projectId}\`
+- **Project URL:** \`https://${projectId || 'YOUR_PROJECT_ID'}.supabase.co\`
+
+This enables all subsequent MCP calls.
+
+---
+
+### Step 5: Apply database migrations via Supabase MCP
+
+Use \`apply_migration\` with \`project_id: "${projectId}"\` for each migration **in order**:
+
+1. Read \`database/migrations/001_user_profiles.sql\` → apply as migration named \`001_user_profiles\`
+2. Read \`database/migrations/002_editable_enums.sql\` → apply as migration named \`002_editable_enums\`
+3. Read \`database/migrations/003_rls_policies.sql\` → apply as migration named \`003_rls_policies\`
+
+After applying all three, call \`list_tables\` with \`project_id: "${projectId}"\` to confirm \`user_profiles\` and \`editable_enums\` exist.
+
+---
+
+### Step 6: Generate TypeScript types
+
+Call \`generate_typescript_types\` with \`project_id: "${projectId}"\`.
+
+Merge the output into \`src/types/database.ts\`:
+- Keep the existing \`UserRole\` enum, \`ROLE_LABELS\`, and all hand-written helper types
+- Add/replace the auto-generated table row types (\`UserProfileRow\`, \`EditableEnumRow\`, etc.)
+- Do not delete any existing exports that are referenced elsewhere in the codebase`;
+}
+
 function fillTemplate(template, formData) {
   if (!template) return buildFallbackMasterPrompt(formData);
 
@@ -491,6 +726,8 @@ function fillTemplate(template, formData) {
     .join('\n');
   const tabList = (tabs.selected || []).join(', ');
   const indexType = tabs.indexType || 'time';
+  const isSensitive = dataModel.dataSensitive === true;
+  const projectId = supabase.projectId || '';
 
   return template
     .replace(/\{\{APP_NAME\}\}/g, identity.name || '')
@@ -519,13 +756,14 @@ function fillTemplate(template, formData) {
     .replace(/\{\{TABS\}\}/g, tabList)
     .replace(/\{\{SUPPORT_EMAIL\}\}/g, email.fromAddress || '')
     .replace(/\{\{FROM_NAME\}\}/g, email.senderName || '')
-    .replace(/\{\{SUPABASE_PROJECT_ID\}\}/g, supabase.projectId || '')
-    .replace(/\{\{SUPABASE_URL\}\}/g, `https://${supabase.projectId || 'YOUR_PROJECT_ID'}.supabase.co`)
+    .replace(/\{\{SUPABASE_PROJECT_ID\}\}/g, projectId)
+    .replace(/\{\{SUPABASE_URL\}\}/g, `https://${projectId || 'YOUR_PROJECT_ID'}.supabase.co`)
     .replace(/\{\{DEPLOYMENT_PLATFORM\}\}/g, deployment.platform || '')
     .replace(/\{\{CUSTOM_DOMAIN\}\}/g, deployment.domain ? `Custom domain: ${deployment.domain}` : '')
     .replace(/\{\{MAPBOX_PUBLIC_TOKEN\}\}/g, (formData.tabs || {}).mapboxPublicToken || 'YOUR_MAPBOX_PUBLIC_TOKEN')
     .replace(/\{\{MAPBOX_SECRET_TOKEN\}\}/g, (formData.tabs || {}).mapboxSecretToken || 'YOUR_MAPBOX_SECRET_TOKEN')
     .replace(/\{\{FROM_NAME\}\}/g, (formData.email || {}).senderName || '')
+    .replace(/\{\{SUPABASE_SETUP_INSTRUCTIONS\}\}/g, buildSupabaseSetupInstructions(isSensitive, projectId))
     .replace(/\{\{GENERATED_DATE\}\}/g, new Date().toISOString().split('T')[0]);
 }
 
@@ -663,24 +901,7 @@ Update \`src/utils/rolePermissions.ts\` — set ROLE_LABELS:
 - manager: "${roleLevel2}"
 - admin: "${roleLevel3}"
 
-### Step 4: Supabase MCP configuration
-
-Update \`.cursor/rules/supabase-mcp.mdc\`:
-- Set **Project ID** = \`${supabase.projectId || ''}\`
-- Set **Project URL** = \`https://${supabase.projectId || 'YOUR_PROJECT_ID'}.supabase.co\`
-
-### Step 5: Apply database migrations via Supabase MCP
-
-Use the Supabase MCP tool \`apply_migration\` with project_id = "${supabase.projectId || ''}" to apply each migration in order:
-1. \`database/migrations/001_user_profiles.sql\`
-2. \`database/migrations/002_editable_enums.sql\`
-3. \`database/migrations/003_rls_policies.sql\`
-
-After applying, run \`list_tables\` to confirm all tables exist.
-
-### Step 6: Generate TypeScript types
-
-Run Supabase MCP \`generate_typescript_types\` with project_id = "${supabase.projectId || ''}" and update \`src/types/database.ts\` with the generated types (merge with existing role/permission logic — do not overwrite the UserRole enum or helper functions).
+${buildSupabaseSetupInstructions(dataModel.dataSensitive === true, supabase.projectId || '')}
 ${isTimeIndexed ? `
 ### Step 7: Time-indexed entity setup
 

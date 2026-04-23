@@ -211,30 +211,48 @@ const PALETTE = [
 ];
 
 /* ── Color themes ────────────────────────────────────────────────────────── */
+// Sourced from real design systems: Tokyo Night, Catppuccin, Nord, Dracula,
+// Everforest, + 3 originals (Desert, Slate Light, Midnight Gold)
 const COLOR_THEMES = [
   {
-    name: 'Indigo Night', icon: '🌙',
-    colors: { primary: '#6366f1', secondary: '#818cf8', accent: '#22c55e', background: '#0f172a', surface: '#1e293b', textPrimary: '#f1f5f9', textSecondary: '#94a3b8' },
+    name: 'Tokyo Night',
+    desc: 'Deep navy · blue & purple accents',
+    colors: { primary: '#7aa2f7', secondary: '#bb9af7', accent: '#73daca', background: '#1a1b26', surface: '#24283b', textPrimary: '#c0caf5', textSecondary: '#565f89' },
   },
   {
-    name: 'Ocean', icon: '🌊',
-    colors: { primary: '#0ea5e9', secondary: '#38bdf8', accent: '#f59e0b', background: '#0c1a2e', surface: '#132337', textPrimary: '#e0f2fe', textSecondary: '#7dd3fc' },
+    name: 'Catppuccin',
+    desc: 'Cozy dark · pastel mauve',
+    colors: { primary: '#cba6f7', secondary: '#89b4fa', accent: '#a6e3a1', background: '#1e1e2e', surface: '#313244', textPrimary: '#cdd6f4', textSecondary: '#7f849c' },
   },
   {
-    name: 'Forest', icon: '🌿',
-    colors: { primary: '#16a34a', secondary: '#4ade80', accent: '#fbbf24', background: '#0a1a0f', surface: '#0f2d19', textPrimary: '#dcfce7', textSecondary: '#86efac' },
+    name: 'Nord',
+    desc: 'Arctic · clean frost blues',
+    colors: { primary: '#88c0d0', secondary: '#81a1c1', accent: '#a3be8c', background: '#2e3440', surface: '#3b4252', textPrimary: '#eceff4', textSecondary: '#616e88' },
   },
   {
-    name: 'Sunset', icon: '🌅',
-    colors: { primary: '#f97316', secondary: '#fb923c', accent: '#6366f1', background: '#1a0c06', surface: '#2d1710', textPrimary: '#fff7ed', textSecondary: '#fed7aa' },
+    name: 'Dracula',
+    desc: 'Dark · bold purple & pink',
+    colors: { primary: '#bd93f9', secondary: '#ff79c6', accent: '#50fa7b', background: '#282a36', surface: '#44475a', textPrimary: '#f8f8f2', textSecondary: '#6272a4' },
   },
   {
-    name: 'Rose', icon: '🌹',
-    colors: { primary: '#e11d48', secondary: '#fb7185', accent: '#8b5cf6', background: '#180810', surface: '#2d0e1e', textPrimary: '#ffe4e6', textSecondary: '#fda4af' },
+    name: 'Everforest',
+    desc: 'Muted · natural sage green',
+    colors: { primary: '#a7c080', secondary: '#83c092', accent: '#d699b6', background: '#272e33', surface: '#2e383c', textPrimary: '#d3c6aa', textSecondary: '#7a8478' },
   },
   {
-    name: 'Slate Light', icon: '☀️',
-    colors: { primary: '#6366f1', secondary: '#818cf8', accent: '#22c55e', background: '#f8fafc', surface: '#ffffff', textPrimary: '#0f172a', textSecondary: '#475569' },
+    name: 'Desert',
+    desc: 'Warm · amber & terracotta',
+    colors: { primary: '#d4903a', secondary: '#c47030', accent: '#7aaf7a', background: '#18100a', surface: '#261810', textPrimary: '#f2e0c8', textSecondary: '#9a7050' },
+  },
+  {
+    name: 'Slate Light',
+    desc: 'Light mode · indigo primary',
+    colors: { primary: '#4f46e5', secondary: '#7c3aed', accent: '#16a34a', background: '#f8fafc', surface: '#ffffff', textPrimary: '#0f172a', textSecondary: '#64748b' },
+  },
+  {
+    name: 'Midnight Gold',
+    desc: 'Near-black · gold accents',
+    colors: { primary: '#c8932a', secondary: '#a67820', accent: '#6366f1', background: '#0a0a0f', surface: '#141420', textPrimary: '#e8e0d0', textSecondary: '#666080' },
   },
 ];
 
@@ -606,18 +624,40 @@ function setColor(key, hex) {
 function buildThemeSection() {
   const container = document.getElementById('themeCards');
   if (!container) return;
-  container.innerHTML = COLOR_THEMES.map((t, i) => `
-    <div class="theme-card" data-theme="${i}" title="${t.name}" style="
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-      padding:10px 8px; border-radius:var(--radius); border:2px solid var(--border);
-      cursor:pointer; transition:border-color var(--transition); min-width:80px; text-align:center;
-    ">
-      <div style="display:flex; gap:3px; margin-bottom:2px">
-        ${['primary','accent','background'].map(k => `<span style="width:16px;height:16px;border-radius:50%;background:${t.colors[k]};border:1px solid rgba(255,255,255,0.15)"></span>`).join('')}
+
+  container.innerHTML = COLOR_THEMES.map((t, i) => {
+    const swatchKeys = ['background', 'surface', 'primary', 'secondary', 'accent'];
+    const swatches = swatchKeys.map(k =>
+      `<span style="flex:1;height:100%;background:${t.colors[k]}" title="${k}: ${t.colors[k]}"></span>`
+    ).join('');
+
+    const isLight = t.colors.background.startsWith('#f') || t.colors.background.startsWith('#e');
+    const previewBg = t.colors.background;
+    const previewText = t.colors.textPrimary;
+    const previewMuted = t.colors.textSecondary;
+
+    return `
+      <div class="theme-card" data-theme="${i}" style="
+        border-radius:8px; border:2px solid var(--border); cursor:pointer;
+        overflow:hidden; transition:border-color var(--transition);
+      ">
+        <div style="background:${previewBg}; padding:10px 12px 0">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px">
+            <span style="font-size:12px; font-weight:700; color:${previewText}">${t.name}</span>
+            <span style="font-size:10px; color:${previewMuted}">${t.desc}</span>
+          </div>
+          <div style="display:flex; gap:5px; margin-bottom:10px">
+            <span style="background:${t.colors.primary}; color:${previewBg}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px">Button</span>
+            <span style="background:${t.colors.surface}; color:${t.colors.primary}; font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid ${t.colors.primary}40">Outline</span>
+          </div>
+          <div style="display:flex; height:8px; border-radius:3px; overflow:hidden">
+            ${swatches}
+          </div>
+        </div>
+        <div style="height:3px"></div>
       </div>
-      <span style="font-size:12px; font-weight:600; color:var(--text)">${t.name}</span>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   container.querySelectorAll('.theme-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -777,6 +817,19 @@ function importFromData(headers, rows) {
 }
 
 function initScreen3() {
+  // Sensitivity card selection
+  document.getElementById('sensitivityCards').querySelectorAll('.index-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#sensitivityCards .index-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const value = card.dataset.sensitivity;
+      document.getElementById('dataSensitivity').value = value;
+      validateStep(3);
+      // Sync step 8 UI whenever sensitivity changes
+      syncStep8Sensitivity(value);
+    });
+  });
+
   // Default fields
   addFieldRow('Title', 'text', true, '');
   addFieldRow('Description', 'text', false, '');
@@ -1095,6 +1148,36 @@ function initScreen7() {
   document.getElementById('emailSenderName').addEventListener('input', () => validateStep(7));
 }
 
+/* ── Sensitivity sync: called when step 3 choice changes ────────────────── */
+function syncStep8Sensitivity(value) {
+  const dbPasswordGroup = document.getElementById('dbPasswordGroup');
+  const dbPasswordInput = document.getElementById('supabaseDbPassword');
+  const banner = document.getElementById('supabaseModeBanner');
+
+  if (value === 'sensitive') {
+    if (dbPasswordGroup) dbPasswordGroup.style.display = '';
+    if (dbPasswordInput) {
+      dbPasswordInput.setAttribute('data-validate', 'required');
+      dbPasswordInput.addEventListener('input', () => validateStep(8));
+    }
+    if (banner) {
+      banner.style.display = '';
+      banner.textContent = '🔒 Sensitive mode: Cursor will read schema from database/schema.md and cannot query live data.';
+    }
+  } else {
+    if (dbPasswordGroup) dbPasswordGroup.style.display = 'none';
+    if (dbPasswordInput) {
+      dbPasswordInput.removeAttribute('data-validate');
+      dbPasswordInput.value = '';
+    }
+    if (banner) {
+      banner.style.display = '';
+      banner.textContent = '🔓 Standard mode: Cursor has full MCP access to read and write data directly.';
+    }
+  }
+  validateStep(8);
+}
+
 /* ── Screen 8: Supabase ──────────────────────────────────────────────────── */
 function initScreen8() {
   const projectIdInput = document.getElementById('supabaseProjectId');
@@ -1109,6 +1192,10 @@ function initScreen8() {
 
   document.getElementById('supabaseAnonKey').addEventListener('input', () => validateStep(8));
   document.getElementById('supabaseServiceKey').addEventListener('input', () => validateStep(8));
+
+  // Apply current sensitivity state in case user navigated back to step 8
+  const currentSensitivity = document.getElementById('dataSensitivity')?.value;
+  if (currentSensitivity) syncStep8Sensitivity(currentSensitivity);
 
   document.getElementById('testConnectionBtn').addEventListener('click', async () => {
     const url = urlInput.value;
@@ -1364,6 +1451,7 @@ function collectDataModel() {
       .split(',').map(s => s.trim()).filter(Boolean),
     defaultSort: document.getElementById('defaultSort')?.value || '',
     defaultSortDir: document.getElementById('defaultSortDir')?.value || 'desc',
+    dataSensitive: document.getElementById('dataSensitivity')?.value === 'sensitive',
   };
 }
 
@@ -1447,6 +1535,7 @@ function collectAllData() {
       region: document.getElementById('supabaseRegion')?.value || '',
       anonKey: document.getElementById('supabaseAnonKey')?.value || '',
       serviceRoleKey: document.getElementById('supabaseServiceKey')?.value || '',
+      dbPassword: document.getElementById('supabaseDbPassword')?.value || '',
     },
     emailProvider: collectEmailProvider(),
     deployment: collectDeployment(),
