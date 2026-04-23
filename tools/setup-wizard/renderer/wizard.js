@@ -804,8 +804,7 @@ function fieldTypeOptions(selected = 'text') {
   return types.map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${t}</option>`).join('');
 }
 
-function addFieldRow(name = '', type = 'text', required = false, notes = '', searchable = false, locked = '') {
-  const tbody = document.getElementById('fieldsBody');
+function createFieldRow(name = '', type = 'text', required = false, notes = '', searchable = false, locked = '') {
   const tr = document.createElement('tr');
   if (locked) tr.dataset.locked = locked;
   const isNameLocked = locked === 'name';
@@ -820,9 +819,14 @@ function addFieldRow(name = '', type = 'text', required = false, notes = '', sea
     <td><input type="text" placeholder="Notes" value="${notes}" class="field-notes" /></td>
     <td>${isProtected ? '' : `<button class="btn-icon" onclick="this.closest('tr').remove(); detectEnums();">✕</button>`}</td>
   `;
-  tbody.appendChild(tr);
   tr.querySelectorAll('input, select').forEach(el => el.addEventListener('change', detectEnums));
   if (!isNameLocked) initRowDrag(tr);
+  return tr;
+}
+
+function addFieldRow(name = '', type = 'text', required = false, notes = '', searchable = false, locked = '') {
+  const tbody = document.getElementById('fieldsBody');
+  tbody.appendChild(createFieldRow(name, type, required, notes, searchable, locked));
 }
 
 function addCardBreak(label = '') {
@@ -951,36 +955,34 @@ function refreshNameRow() {
   if (nameRow) nameRow.value = `${singular} Name`;
 }
 
+const INDEX_FIELDS = {
+  time: [
+    { name: 'Start Time', type: 'datetime', required: true,  locked: 'required' },
+    { name: 'End Time',   type: 'datetime', required: false, locked: '' },
+  ],
+  location: [
+    { name: 'Location', type: 'text', required: true, locked: 'required' },
+  ],
+  custom: [],
+};
+
 function refreshProtectedFields(indexType) {
-  // Remove previous required-locked flags (but not name-locked)
-  document.querySelectorAll('#fieldsBody tr[data-locked="required"]').forEach(tr => {
-    tr.removeAttribute('data-locked');
-    const deleteTd = tr.querySelector('td:last-child');
-    if (deleteTd && !deleteTd.querySelector('button')) {
-      deleteTd.innerHTML = `<button class="btn-icon" onclick="this.closest('tr').remove(); detectEnums();">✕</button>`;
-    }
-  });
+  const tbody = document.getElementById('fieldsBody');
 
-  const protectedNames = getProtectedNames(indexType);
-  document.querySelectorAll('#fieldsBody tr').forEach(tr => {
-    if (tr.dataset.locked === 'name') return;
-    const name = tr.querySelector('.field-name')?.value || '';
-    if (protectedNames.has(name.toLowerCase())) {
-      tr.dataset.locked = 'required';
-      const deleteTd = tr.querySelector('td:last-child');
-      if (deleteTd) deleteTd.innerHTML = '';
-    }
-  });
-}
+  // Remove all previously injected index-specific rows
+  tbody.querySelectorAll('tr[data-index-field]').forEach(tr => tr.remove());
 
-function getProtectedNames(indexType) {
-  const base = new Set();
-  if (indexType === 'time') {
-    base.add('start time');
-  } else if (indexType === 'location') {
-    base.add('location');
-  }
-  return base;
+  // Find the name row anchor — insert index fields immediately after it
+  const nameRow = tbody.querySelector('tr[data-locked="name"]');
+  let insertBefore = nameRow ? nameRow.nextSibling : null;
+
+  (INDEX_FIELDS[indexType] || []).forEach(f => {
+    const tr = createFieldRow(f.name, f.type, f.required, '', false, f.locked);
+    tr.dataset.indexField = 'true';
+    tbody.insertBefore(tr, insertBefore);
+    // Keep subsequent fields in order
+    insertBefore = tr.nextSibling;
+  });
 }
 
 function initScreen3() {
@@ -1000,10 +1002,11 @@ function initScreen3() {
   addFieldRow('Entity Name', 'text', true, '', false, 'name');
   refreshNameRow();
 
-  // Default index-type-specific fields (protected from deletion)
+  // General default fields (all deletable)
   addFieldRow('Description', 'text', false, '');
-  addFieldRow('Start Time', 'datetime', true, '', false, 'required');
-  addFieldRow('End Time', 'datetime', false, '');
+
+  // Inject index-specific required fields for the current index type
+  refreshProtectedFields(state.indexType);
 
   document.getElementById('addFieldBtn').addEventListener('click', () => addFieldRow());
   document.getElementById('addCardBreakBtn').addEventListener('click', () => addCardBreak());
