@@ -2,6 +2,7 @@
   "name": "base-app-setup-wizard",
   "version": "1.0.0",
   "description": "Desktop setup wizard for base-app — clones the framework and generates a fully configured new project.",
+  "repository": "https://github.com/kwatts11/base-app",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
