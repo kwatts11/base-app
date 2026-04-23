@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('wizard', {
 
   // Generate all project files
   generate: (payload) => ipcRenderer.invoke('wizard:generate', payload),
+  onGenerateProgress: (cb) =>
+    ipcRenderer.on('generate:progress', (_, msg) => cb(msg)),
 
   // Shell helpers
   openUrl: (url) => ipcRenderer.invoke('wizard:open-url', url),

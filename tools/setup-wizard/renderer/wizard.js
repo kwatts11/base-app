@@ -246,8 +246,38 @@ const COLOR_THEMES = [
   },
   {
     name: 'Slate Light',
-    desc: 'Light mode · indigo primary',
+    desc: 'Light · indigo on crisp white',
     colors: { primary: '#4f46e5', secondary: '#7c3aed', accent: '#16a34a', background: '#f8fafc', surface: '#ffffff', textPrimary: '#0f172a', textSecondary: '#64748b' },
+  },
+  {
+    name: 'Ocean Fresh',
+    desc: 'Light · cyan & emerald on sky',
+    colors: { primary: '#0891b2', secondary: '#0e7490', accent: '#10b981', background: '#f0f9ff', surface: '#ffffff', textPrimary: '#0c4a6e', textSecondary: '#64748b' },
+  },
+  {
+    name: 'Violet Dawn',
+    desc: 'Light · violet & pink creative',
+    colors: { primary: '#7c3aed', secondary: '#6d28d9', accent: '#db2777', background: '#faf5ff', surface: '#ffffff', textPrimary: '#1e0a3c', textSecondary: '#6b7280' },
+  },
+  {
+    name: 'Rose Quartz',
+    desc: 'Light · rose & amber warmth',
+    colors: { primary: '#e11d48', secondary: '#db2777', accent: '#d97706', background: '#fff5f7', surface: '#ffffff', textPrimary: '#3b0015', textSecondary: '#71717a' },
+  },
+  {
+    name: 'Forest Sage',
+    desc: 'Light · deep green & earth amber',
+    colors: { primary: '#15803d', secondary: '#166534', accent: '#b45309', background: '#f7f5f0', surface: '#ffffff', textPrimary: '#1c1917', textSecondary: '#6b7280' },
+  },
+  {
+    name: 'Amber Grove',
+    desc: 'Light · amber & sage warmth',
+    colors: { primary: '#d97706', secondary: '#b45309', accent: '#15803d', background: '#fffbeb', surface: '#ffffff', textPrimary: '#1c1208', textSecondary: '#71717a' },
+  },
+  {
+    name: 'Cobalt',
+    desc: 'Light · deep blue enterprise',
+    colors: { primary: '#1d4ed8', secondary: '#1e40af', accent: '#0891b2', background: '#eff6ff', surface: '#ffffff', textPrimary: '#0f1c45', textSecondary: '#4b5563' },
   },
   {
     name: 'Midnight Gold',
@@ -489,8 +519,8 @@ function initScreen1() {
       document.querySelectorAll('#indexCards .index-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       state.indexType = card.dataset.index;
-      // Rebuild tab checklist in step 6 immediately
       buildTabChecklist(card.dataset.index);
+      refreshProtectedFields(card.dataset.index);
     });
   });
   // Default: time
@@ -734,42 +764,147 @@ function initScreen2() {
 }
 
 /* ── Screen 3: Data Model ────────────────────────────────────────────────── */
+// ── Field Presets ─────────────────────────────────────────────────────────
+const FIELD_PRESETS = {
+  contact: [
+    { name: 'Email', type: 'text' },
+    { name: 'Phone', type: 'text' },
+    { name: 'Contact Name', type: 'text' },
+  ],
+  address: [
+    { name: 'Street', type: 'text' },
+    { name: 'City', type: 'text' },
+    { name: 'State', type: 'text' },
+    { name: 'Zip', type: 'text' },
+    { name: 'Country', type: 'text' },
+  ],
+  financial: [
+    { name: 'Amount', type: 'number' },
+    { name: 'Currency', type: 'enum' },
+    { name: 'Payment Status', type: 'enum' },
+  ],
+  notes: [
+    { name: 'Note', type: 'text' },
+    { name: 'Tags', type: 'tags' },
+  ],
+};
+
+function addPresetFields(presetKey) {
+  const preset = FIELD_PRESETS[presetKey];
+  if (!preset) return;
+  const existing = new Set(getFields().map(f => f.name?.toLowerCase()));
+  preset.forEach(f => {
+    if (!existing.has(f.name.toLowerCase())) addFieldRow(f.name, f.type);
+  });
+  detectEnums();
+}
+
 function fieldTypeOptions(selected = 'text') {
-  const types = ['text', 'number', 'date', 'time', 'datetime', 'boolean', 'enum', 'image', 'url'];
+  const types = ['text', 'number', 'date', 'time', 'datetime', 'boolean', 'enum', 'tags', 'image', 'url'];
   return types.map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${t}</option>`).join('');
 }
 
-function addFieldRow(name = '', type = 'text', required = false, notes = '') {
+function addFieldRow(name = '', type = 'text', required = false, notes = '', searchable = false, locked = '') {
   const tbody = document.getElementById('fieldsBody');
   const tr = document.createElement('tr');
+  if (locked) tr.dataset.locked = locked;
+  const isNameLocked = locked === 'name';
+  const isProtected = locked === 'name' || locked === 'required';
+
   tr.innerHTML = `
-    <td><input type="text" placeholder="Field name" value="${name}" class="field-name" /></td>
+    <td class="drag-handle ${isNameLocked ? 'drag-handle--disabled' : ''}">≡</td>
+    <td><input type="text" placeholder="Field name" value="${name}" class="field-name" ${isNameLocked ? 'readonly' : ''} /></td>
     <td><select class="field-type">${fieldTypeOptions(type)}</select></td>
     <td style="text-align:center"><input type="checkbox" class="field-required" ${required ? 'checked' : ''} /></td>
+    <td style="text-align:center"><input type="checkbox" class="field-searchable" ${searchable ? 'checked' : ''} /></td>
     <td><input type="text" placeholder="Notes" value="${notes}" class="field-notes" /></td>
-    <td><button class="btn-icon" onclick="this.closest('tr').remove(); detectEnums();">✕</button></td>
+    <td>${isProtected ? '' : `<button class="btn-icon" onclick="this.closest('tr').remove(); detectEnums();">✕</button>`}</td>
   `;
   tbody.appendChild(tr);
   tr.querySelectorAll('input, select').forEach(el => el.addEventListener('change', detectEnums));
+  if (!isNameLocked) initRowDrag(tr);
+}
+
+function addCardBreak(label = '') {
+  const tbody = document.getElementById('fieldsBody');
+  const tr = document.createElement('tr');
+  tr.dataset.cardBreak = 'true';
+  tr.innerHTML = `
+    <td class="drag-handle">≡</td>
+    <td colspan="5" style="padding:4px 8px">
+      <input type="text" class="card-break-label" placeholder="Section label (e.g. Contact Info)" value="${label}" style="font-weight:600; width:100%" />
+    </td>
+    <td><button class="btn-icon" onclick="this.closest('tr').remove();">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  initRowDrag(tr);
+}
+
+let dragSrcRow = null;
+
+function initRowDrag(tr) {
+  const handle = tr.querySelector('.drag-handle');
+  if (!handle) return;
+
+  handle.addEventListener('mousedown', () => { tr.draggable = true; });
+  handle.addEventListener('mouseup', () => { tr.draggable = false; });
+
+  tr.addEventListener('dragstart', e => {
+    dragSrcRow = tr;
+    setTimeout(() => tr.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  tr.addEventListener('dragend', () => {
+    dragSrcRow = null;
+    tr.draggable = false;
+    tr.classList.remove('dragging');
+    document.querySelectorAll('#fieldsBody tr').forEach(r => r.classList.remove('drag-over'));
+  });
+
+  tr.addEventListener('dragover', e => {
+    if (!dragSrcRow || dragSrcRow === tr) return;
+    if (tr.dataset.locked === 'name') return;
+    e.preventDefault();
+    document.querySelectorAll('#fieldsBody tr').forEach(r => r.classList.remove('drag-over'));
+    tr.classList.add('drag-over');
+  });
+
+  tr.addEventListener('drop', e => {
+    if (!dragSrcRow || dragSrcRow === tr) return;
+    if (tr.dataset.locked === 'name') return;
+    e.preventDefault();
+    tr.classList.remove('drag-over');
+    const tbody = document.getElementById('fieldsBody');
+    tbody.insertBefore(dragSrcRow, tr);
+  });
 }
 
 function getFields() {
-  return Array.from(document.querySelectorAll('#fieldsBody tr')).map(tr => ({
-    name: tr.querySelector('.field-name')?.value || '',
-    type: tr.querySelector('.field-type')?.value || 'text',
-    required: tr.querySelector('.field-required')?.checked || false,
-    notes: tr.querySelector('.field-notes')?.value || '',
-  })).filter(f => f.name);
+  return Array.from(document.querySelectorAll('#fieldsBody tr')).map(tr => {
+    if (tr.dataset.cardBreak) {
+      return { type: 'card_break', label: tr.querySelector('.card-break-label')?.value || '' };
+    }
+    return {
+      name: tr.querySelector('.field-name')?.value || '',
+      type: tr.querySelector('.field-type')?.value || 'text',
+      required: tr.querySelector('.field-required')?.checked || false,
+      searchable: tr.querySelector('.field-searchable')?.checked || false,
+      notes: tr.querySelector('.field-notes')?.value || '',
+    };
+  }).filter(f => f.type === 'card_break' || f.name);
 }
 
 function detectEnums() {
-  // Called after import or field type change
-  const enumFields = getFields().filter(f => f.type === 'enum');
-  state.enumCandidates = enumFields.map(f => f.name);
+  const fields = getFields();
+  state.enumCandidates = fields
+    .filter(f => f.type === 'enum' || f.type === 'tags')
+    .map(f => ({ name: f.name, type: f.type }));
   const banner = document.getElementById('enumBanner');
   if (state.enumCandidates.length > 0) {
+    const names = state.enumCandidates.map(c => c.name).join(', ');
     banner.classList.add('visible');
-    banner.querySelector('strong').textContent = `Enum candidates: ${state.enumCandidates.join(', ')}`;
+    banner.querySelector('strong').textContent = `Enum/tag candidates: ${names}`;
   } else {
     banner.classList.remove('visible');
   }
@@ -799,21 +934,53 @@ function guessType(values) {
 }
 
 function importFromData(headers, rows) {
-  const tbody = document.getElementById('fieldsBody');
-  tbody.innerHTML = '';
+  const existing = new Set(getFields().filter(f => f.type !== 'card_break').map(f => f.name?.toLowerCase()));
   headers.forEach((h, i) => {
+    if (existing.has(h.toLowerCase())) return;
     const colValues = rows.map(r => r[i] || '');
     const type = guessType(colValues);
     addFieldRow(h, type, false, '');
   });
   detectEnums();
-
-  // Pre-fill entity names if blank
-  const singular = document.getElementById('entitySingular');
-  if (!singular.value && headers.length) {
-    // Guess entity name from first meaningful column
-  }
   validateStep(3);
+}
+
+function refreshNameRow() {
+  const singular = document.getElementById('entitySingular')?.value || 'Entity';
+  const nameRow = document.querySelector('#fieldsBody tr[data-locked="name"] .field-name');
+  if (nameRow) nameRow.value = `${singular} Name`;
+}
+
+function refreshProtectedFields(indexType) {
+  // Remove previous required-locked flags (but not name-locked)
+  document.querySelectorAll('#fieldsBody tr[data-locked="required"]').forEach(tr => {
+    tr.removeAttribute('data-locked');
+    const deleteTd = tr.querySelector('td:last-child');
+    if (deleteTd && !deleteTd.querySelector('button')) {
+      deleteTd.innerHTML = `<button class="btn-icon" onclick="this.closest('tr').remove(); detectEnums();">✕</button>`;
+    }
+  });
+
+  const protectedNames = getProtectedNames(indexType);
+  document.querySelectorAll('#fieldsBody tr').forEach(tr => {
+    if (tr.dataset.locked === 'name') return;
+    const name = tr.querySelector('.field-name')?.value || '';
+    if (protectedNames.has(name.toLowerCase())) {
+      tr.dataset.locked = 'required';
+      const deleteTd = tr.querySelector('td:last-child');
+      if (deleteTd) deleteTd.innerHTML = '';
+    }
+  });
+}
+
+function getProtectedNames(indexType) {
+  const base = new Set();
+  if (indexType === 'time') {
+    base.add('start time');
+  } else if (indexType === 'location') {
+    base.add('location');
+  }
+  return base;
 }
 
 function initScreen3() {
@@ -825,24 +992,35 @@ function initScreen3() {
       const value = card.dataset.sensitivity;
       document.getElementById('dataSensitivity').value = value;
       validateStep(3);
-      // Sync step 8 UI whenever sensitivity changes
       syncStep8Sensitivity(value);
     });
   });
 
-  // Default fields
-  addFieldRow('Title', 'text', true, '');
+  // Pinned entity-name row (always first, non-draggable, non-deletable)
+  addFieldRow('Entity Name', 'text', true, '', false, 'name');
+  refreshNameRow();
+
+  // Default index-type-specific fields (protected from deletion)
   addFieldRow('Description', 'text', false, '');
-  addFieldRow('Start Time', 'datetime', true, '');
+  addFieldRow('Start Time', 'datetime', true, '', false, 'required');
   addFieldRow('End Time', 'datetime', false, '');
 
   document.getElementById('addFieldBtn').addEventListener('click', () => addFieldRow());
+  document.getElementById('addCardBreakBtn').addEventListener('click', () => addCardBreak());
 
-  document.getElementById('entitySingular').addEventListener('input', () => validateStep(3));
-  document.getElementById('entityPlural').addEventListener('input', () => validateStep(3));
+  // Preset panel toggle
+  document.getElementById('presetsToggleBtn').addEventListener('click', () => {
+    const panel = document.getElementById('presetsPanel');
+    panel.hidden = !panel.hidden;
+  });
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => addPresetFields(btn.dataset.preset));
+  });
 
-  // Auto-pluralize
+  // Entity name listeners
   document.getElementById('entitySingular').addEventListener('input', () => {
+    refreshNameRow();
+    validateStep(3);
     const s = document.getElementById('entitySingular').value;
     const p = document.getElementById('entityPlural');
     if (!p.value || p.dataset.autoSet === 'true') {
@@ -852,6 +1030,7 @@ function initScreen3() {
   });
   document.getElementById('entityPlural').addEventListener('input', () => {
     document.getElementById('entityPlural').dataset.autoSet = 'false';
+    validateStep(3);
   });
 
   // Import file
@@ -957,10 +1136,11 @@ function populateEnumsFromCandidates() {
   const tbody = document.getElementById('enumsBody');
   if (!tbody) return;
   const entitySingular = document.getElementById('entitySingular')?.value || 'Entity';
-  state.enumCandidates.forEach(name => {
+  state.enumCandidates.forEach(({ name, type }) => {
     const exists = Array.from(tbody.querySelectorAll('input:first-child')).some(i => i.value === name);
     if (!exists) {
-      addEnumRow(name, '', `${entitySingular} form — ${name} field`);
+      const placeholder = type === 'tags' ? 'Tag 1, Tag 2, Tag 3' : '';
+      addEnumRow(name, placeholder, `${entitySingular} form — ${name} ${type}`);
     }
   });
   if (tbody.children.length === 0) {
@@ -1148,32 +1328,15 @@ function initScreen7() {
   document.getElementById('emailSenderName').addEventListener('input', () => validateStep(7));
 }
 
-/* ── Sensitivity sync: called when step 3 choice changes ────────────────── */
+/* ── Sensitivity sync: only adjusts the AI-access banner now.
+     DB password is always required so the wizard can apply migrations. ──── */
 function syncStep8Sensitivity(value) {
-  const dbPasswordGroup = document.getElementById('dbPasswordGroup');
-  const dbPasswordInput = document.getElementById('supabaseDbPassword');
   const banner = document.getElementById('supabaseModeBanner');
-
-  if (value === 'sensitive') {
-    if (dbPasswordGroup) dbPasswordGroup.style.display = '';
-    if (dbPasswordInput) {
-      dbPasswordInput.setAttribute('data-validate', 'required');
-      dbPasswordInput.addEventListener('input', () => validateStep(8));
-    }
-    if (banner) {
-      banner.style.display = '';
-      banner.textContent = '🔒 Sensitive mode: Cursor will read schema from database/schema.md and cannot query live data.';
-    }
-  } else {
-    if (dbPasswordGroup) dbPasswordGroup.style.display = 'none';
-    if (dbPasswordInput) {
-      dbPasswordInput.removeAttribute('data-validate');
-      dbPasswordInput.value = '';
-    }
-    if (banner) {
-      banner.style.display = '';
-      banner.textContent = '🔓 Standard mode: Cursor has full MCP access to read and write data directly.';
-    }
+  if (banner) {
+    banner.style.display = '';
+    banner.textContent = value === 'sensitive'
+      ? '🔒 Sensitive mode: Cursor will read schema from database/schema.md and cannot query live data.'
+      : '🔓 Standard mode: Cursor has full MCP access to read and write data directly.';
   }
   validateStep(8);
 }
@@ -1192,6 +1355,7 @@ function initScreen8() {
 
   document.getElementById('supabaseAnonKey').addEventListener('input', () => validateStep(8));
   document.getElementById('supabaseServiceKey').addEventListener('input', () => validateStep(8));
+  document.getElementById('supabaseDbPassword').addEventListener('input', () => validateStep(8));
 
   // Apply current sensitivity state in case user navigated back to step 8
   const currentSensitivity = document.getElementById('dataSensitivity')?.value;
@@ -1385,6 +1549,28 @@ async function runGenerate() {
   progress.classList.add('visible');
   document.getElementById('generateError').classList.add('hidden');
 
+  const logEl = document.getElementById('generateLog');
+  logEl.style.display = '';
+  logEl.innerHTML = '';
+  const seen = new Set();
+  if (window.wizard.onGenerateProgress) {
+    window.wizard.onGenerateProgress((msg) => {
+      const id = msg.id || '';
+      const status = msg.status || '';
+      const detail = msg.detail || msg.message || msg.error || '';
+      const key = `${id}:${status}`;
+      if (seen.has(key) && !detail) return;
+      seen.add(key);
+      const icon = status === 'done' ? '✓' : status === 'failed' ? '✗' : status === 'warning' ? '⚠' : status === 'skipped' ? '○' : '·';
+      const color = status === 'failed' ? 'var(--error)' : status === 'warning' ? 'var(--warning, #f59e0b)' : status === 'done' ? 'var(--success)' : 'var(--text-secondary)';
+      const line = document.createElement('div');
+      line.style.color = color;
+      line.textContent = `${icon} ${msg.label || id}${detail ? ` — ${detail}` : ''}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    });
+  }
+
   // Step 1: icons
   setGenStep('icons', 'active');
   const icons = await generateIcons();
@@ -1443,12 +1629,12 @@ function collectBranding() {
 }
 
 function collectDataModel() {
+  const fields = getFields();
   return {
     entitySingular: document.getElementById('entitySingular')?.value || '',
     entityPlural: document.getElementById('entityPlural')?.value || '',
-    fields: getFields(),
-    searchableFields: (document.getElementById('searchableFields')?.value || '')
-      .split(',').map(s => s.trim()).filter(Boolean),
+    fields,
+    searchableFields: fields.filter(f => f.searchable).map(f => f.name),
     defaultSort: document.getElementById('defaultSort')?.value || '',
     defaultSortDir: document.getElementById('defaultSortDir')?.value || 'desc',
     dataSensitive: document.getElementById('dataSensitivity')?.value === 'sensitive',

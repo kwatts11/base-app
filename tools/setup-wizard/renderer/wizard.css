@@ -754,6 +754,64 @@ textarea { resize: vertical; min-height: 80px; }
 .enum-banner.visible { display: flex; }
 .enum-banner strong { display: block; margin-bottom: 2px; }
 
+/* ── Drag handles ────────────────────────────────────────────────────────── */
+.drag-handle {
+  cursor: grab;
+  color: var(--text-muted);
+  text-align: center;
+  user-select: none;
+  font-size: 14px;
+  padding: 6px 4px;
+}
+.drag-handle--disabled {
+  cursor: default;
+  opacity: 0;
+  pointer-events: none;
+}
+.data-table tr.dragging { opacity: 0.4; }
+.data-table tr.drag-over td { border-top: 2px solid var(--primary); }
+
+/* ── Locked rows ─────────────────────────────────────────────────────────── */
+.data-table tr[data-locked="name"] td { background: var(--surface2); }
+.data-table tr[data-locked="name"] .field-name { color: var(--text-muted); font-style: italic; }
+
+/* ── Card break rows ─────────────────────────────────────────────────────── */
+.data-table tr[data-card-break] td {
+  background: var(--surface2);
+  border-top: 2px solid var(--border);
+}
+.card-break-label {
+  font-weight: 600;
+  font-size: 12px;
+  background: transparent;
+  border-color: transparent;
+  width: 100%;
+}
+.card-break-label:focus {
+  background: var(--bg);
+  border-color: var(--primary);
+}
+
+/* ── Preset panel ────────────────────────────────────────────────────────── */
+.presets-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.presets-panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.presets-panel-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
 /* ── Step 5 — Enum categories ────────────────────────────────────────────── */
 .enum-table { width: 100%; }
 .enum-table td { padding: 5px 6px; vertical-align: middle; }

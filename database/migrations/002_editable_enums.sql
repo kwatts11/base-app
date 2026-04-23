@@ -26,19 +26,15 @@ CREATE INDEX idx_editable_enums_name ON public.editable_enums(enum_name);
 CREATE INDEX idx_editable_enums_active ON public.editable_enums(is_active);
 
 -- ── Seed data ────────────────────────────────────────────────────────────────
--- TODO: [BASE-APP SETUP NEEDED] Replace with enum categories from PRD.md
--- These are generic examples — AI replaces with your actual categories and values
-
+-- WIZARD:BEGIN enum-seed
 INSERT INTO public.editable_enums (enum_name, enum_value, display_order, is_active) VALUES
-  -- Example category 1 (rename in PRD.md)
   ('category', 'Option A', 1, true),
   ('category', 'Option B', 2, true),
   ('category', 'Option C', 3, true),
-
-  -- Example status enum
   ('status', 'Draft', 1, true),
   ('status', 'Published', 2, true),
   ('status', 'Cancelled', 3, true);
+-- WIZARD:END enum-seed
 
 COMMENT ON TABLE public.editable_enums IS
   'Admin-managed enumeration values. Used for dropdowns, tags, and categorization throughout the app.';

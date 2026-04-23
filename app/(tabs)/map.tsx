@@ -130,10 +130,9 @@ function BottomSheet({
             </Text>
           ) : null}
 
-          {/* APP_SETUP: add stats here */}
-          <View style={[styles.sheetStats, { borderTopColor: theme.colors.border }]}>
-            {/* APP_SETUP: replace with app-specific stat chips */}
-          </View>
+          {/* WIZARD:BEGIN app-setup-stats */}
+          <View style={[styles.sheetStats, { borderTopColor: theme.colors.border }]} />
+          {/* WIZARD:END app-setup-stats */}
 
           {/* Actions */}
           <View style={[styles.sheetActions, { borderTopColor: theme.colors.border }]}>
@@ -257,8 +256,9 @@ function MapContent(): React.JSX.Element {
   }, []);
 
   const handleEdit = useCallback((_loc: LocationWithArea) => {
-    // APP_SETUP: navigate to location edit modal
+    // WIZARD:BEGIN app-setup-detail-nav
     // router.push(`/(modal)/edit-location?id=${_loc.id}`);
+    // WIZARD:END app-setup-detail-nav
   }, []);
 
   if (loading) {

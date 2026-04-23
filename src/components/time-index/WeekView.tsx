@@ -28,9 +28,12 @@ interface Props {
 }
 
 export function WeekView({
-  // TODO: [BASE-APP SETUP NEEDED] — AI sets these from PRD.md
+  // WIZARD:BEGIN default-table
   tableName = 'events',
+  // WIZARD:END default-table
+  // WIZARD:BEGIN default-time-column
   timeColumn = 'start_time',
+  // WIZARD:END default-time-column
   selectColumns = '*',
   transformRow = defaultTransform,
   onEventPress,

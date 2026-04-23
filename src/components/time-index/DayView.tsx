@@ -35,9 +35,12 @@ interface Props {
 }
 
 export function DayView({
-  // TODO: [BASE-APP SETUP NEEDED] — AI sets these from PRD.md entity definition
+  // WIZARD:BEGIN default-table
   tableName = 'events',
+  // WIZARD:END default-table
+  // WIZARD:BEGIN default-time-column
   timeColumn = 'start_time',
+  // WIZARD:END default-time-column
   selectColumns = '*',
   transformRow = defaultTransform,
   onEventPress,

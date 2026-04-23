@@ -37,7 +37,8 @@ export const PAGE_IDS = {
   HOME: 'T1',
   ADMIN: 'T2',
   SETUP: 'T3',
-  // Add app-specific tabs here: TODAY: 'T4', WEEK: 'T5', MONTH: 'T6', SEARCH: 'T7'
+  // WIZARD:BEGIN app-page-ids
+  // WIZARD:END app-page-ids
 
   // Modals
   MODAL_LAYOUT: 'M0',
@@ -67,6 +68,8 @@ export const PAGE_NAMES: Record<string, string> = {
   T1: 'Home',
   T2: 'Admin',
   T3: 'Setup Checklist',
+  // WIZARD:BEGIN app-page-names
+  // WIZARD:END app-page-names
   M0: 'Modal Layout',
   M1: 'Edit Enums',
   M2: 'Manage Users',

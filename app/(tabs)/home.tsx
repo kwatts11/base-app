@@ -26,7 +26,7 @@ export default function HomeScreen(): React.JSX.Element {
     <ScrollView style={[s.container, { backgroundColor: theme.colors.background }]}>
       <PageIdDisplay pageId={PAGE_IDS.HOME} />
 
-      {/* Setup notice */}
+      {/* WIZARD:BEGIN setup-card */}
       <View style={[s.setupCard, { backgroundColor: '#FF6B00' }]}>
         <Ionicons name="construct" size={20} color="#fff" style={{ marginBottom: 6 }} />
         <Text style={s.setupTitle}>[BASE-APP SETUP NEEDED]</Text>
@@ -35,6 +35,7 @@ export default function HomeScreen(): React.JSX.Element {
           to replace this with your app's real content.
         </Text>
       </View>
+      {/* WIZARD:END setup-card */}
 
       {/* App info */}
       <View style={[s.card, { backgroundColor: theme.colors.surface }]}>

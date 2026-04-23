@@ -118,12 +118,11 @@ function LocationCard({
             {location.notes}
           </Text>
         ) : null}
-        {/* APP_SETUP: add key stats here */}
+        {/* WIZARD:BEGIN app-setup-stats */}
         <View style={[styles.cardStats, { borderTopColor: theme.colors.border }]}>
-          <Text style={[styles.cardStatPlaceholder, { color: theme.colors.textMuted }]}>
-            {/* APP_SETUP: replace with app-specific stat chips */}
-          </Text>
+          <Text style={[styles.cardStatPlaceholder, { color: theme.colors.textMuted }]} />
         </View>
+        {/* WIZARD:END app-setup-stats */}
       </View>
       <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} style={styles.cardChevron} />
     </TouchableOpacity>
@@ -241,8 +240,9 @@ export default function AreaScreen(): React.JSX.Element {
               location={item}
               areaColor={selectedArea?.color ?? '#888888'}
               onPress={() => {
-                // APP_SETUP: navigate to location detail screen
+                // WIZARD:BEGIN app-setup-detail-nav
                 // router.push(`/(modal)/location-detail?id=${item.id}`);
+                // WIZARD:END app-setup-detail-nav
               }}
             />
           )}

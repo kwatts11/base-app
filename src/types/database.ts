@@ -49,6 +49,7 @@ export interface EditableEnum {
   isPublic: boolean;
 }
 
+// WIZARD:BEGIN location-types
 // ── Areas ────────────────────────────────────────────────────────────────────
 export interface AreaRow {
   id: string;
@@ -77,6 +78,7 @@ export interface LocationRow {
 export interface LocationWithArea extends LocationRow {
   area: AreaRow;
 }
+// WIZARD:END location-types
 
 // ── Session invalidations (admin-forced logout) ──────────────────────────────
 export interface SessionInvalidationRow {
@@ -106,6 +108,7 @@ export interface Database {
         Insert: Omit<SessionInvalidationRow, 'id' | 'created_at'>;
         Update: Partial<Omit<SessionInvalidationRow, 'id' | 'created_at'>>;
       };
+      // WIZARD:BEGIN location-tables
       areas: {
         Row: AreaRow;
         Insert: Omit<AreaRow, 'id' | 'created_at' | 'updated_at'>;
@@ -116,7 +119,7 @@ export interface Database {
         Insert: Omit<LocationRow, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<LocationRow, 'id' | 'created_at'>>;
       };
-      // TODO: [BASE-APP SETUP NEEDED] — AI adds app entity table types here
+      // WIZARD:END location-tables
     };
     Views: {};
     Functions: {};

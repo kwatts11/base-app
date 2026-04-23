@@ -236,7 +236,19 @@
           <button class="btn btn-secondary btn-sm" id="pasteTextBtn">📋 Paste Text</button>
           <div class="divider"></div>
           <button class="btn btn-ghost btn-sm" id="addFieldBtn">+ Add Field</button>
-          <div style="margin-left:auto; font-size:12px; color:var(--text-muted)">Import detects field names and types automatically.</div>
+          <button class="btn btn-ghost btn-sm" id="addCardBreakBtn">+ Add Section Break</button>
+          <button class="btn btn-ghost btn-sm" id="presetsToggleBtn">⊞ Field Presets</button>
+          <div style="margin-left:auto; font-size:12px; color:var(--text-muted)">Import appends to existing fields.</div>
+        </div>
+
+        <div id="presetsPanel" hidden class="presets-panel">
+          <div class="presets-panel-title">Add preset field groups:</div>
+          <div class="presets-panel-buttons">
+            <button class="btn btn-secondary btn-sm" data-preset="contact">👤 Contact</button>
+            <button class="btn btn-secondary btn-sm" data-preset="address">📍 Address</button>
+            <button class="btn btn-secondary btn-sm" data-preset="financial">💰 Financial</button>
+            <button class="btn btn-secondary btn-sm" data-preset="notes">📝 Notes</button>
+          </div>
         </div>
 
         <div class="enum-banner" id="enumBanner">
@@ -248,9 +260,11 @@
           <table class="data-table">
             <thead>
               <tr>
+                <th style="width:32px"></th>
                 <th style="width:200px">Field Name</th>
                 <th style="width:140px">Type</th>
                 <th style="width:80px; text-align:center">Required</th>
+                <th style="width:90px; text-align:center">Searchable</th>
                 <th>Notes</th>
                 <th style="width:40px"></th>
               </tr>
@@ -262,11 +276,6 @@
         </div>
 
         <div class="form-row cols-2 mt-16">
-          <div class="form-group">
-            <label>Searchable Fields</label>
-            <input type="text" id="searchableFields" placeholder="Title, Description" />
-            <div class="text-small text-muted mt-4">Comma-separated field names to include in full-text search.</div>
-          </div>
           <div class="form-group">
             <label>Default Sort</label>
             <div style="display:flex; gap:8px">
@@ -456,19 +465,20 @@
             <div id="connStatus"></div>
           </div>
 
-          <!-- Sensitive mode: DB password for schema-only generation (hidden for standard) -->
-          <div id="dbPasswordGroup" style="display:none">
+          <!-- DB password — always required so wizard can apply migrations directly -->
+          <div id="dbPasswordGroup">
             <hr class="section-divider" />
             <div class="form-group">
               <label>Database Password <span class="required">*</span>
-                <span class="hint">— used only for schema generation, never sent to AI</span>
+                <span class="hint">— used by the wizard to apply migrations via the Supabase pooler</span>
               </label>
               <div class="input-with-badge">
-                <input type="password" id="supabaseDbPassword" placeholder="your-database-password" />
+                <input type="password" id="supabaseDbPassword" data-validate="required" placeholder="your-database-password" />
                 <span class="input-badge" style="cursor:pointer" onclick="toggleMask('supabaseDbPassword')">Show</span>
               </div>
               <div class="text-small text-muted mt-4">
                 Find in: Supabase Dashboard → Settings → Database → Connection string (the password segment).
+                Stored only in the generated <code>.env</code> file — never sent anywhere else.
               </div>
             </div>
           </div>
@@ -613,6 +623,7 @@
               <span class="gen-step-icon">⬜</span> Opening Cursor…
             </div>
           </div>
+          <div id="generateLog" class="generate-log" style="display:none; margin-top:12px; max-height:240px; overflow-y:auto; font-family:ui-monospace,monospace; font-size:11px; background:var(--surface2); padding:10px 12px; border-radius:6px"></div>
           <div id="generateError" class="status-row error hidden" style="margin-top:12px"></div>
         </div>
       </div>

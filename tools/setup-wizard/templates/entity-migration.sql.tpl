@@ -1,0 +1,12 @@
+-- Entity migration template — actual content is generated programmatically by
+-- lib/generators/entity-sql.js. This file is a reference of the shape produced.
+
+-- CREATE TABLE IF NOT EXISTS public.{{TABLE_NAME}} (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   ...columns...
+--   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+--   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+--   created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL
+-- );
+-- ALTER TABLE public.{{TABLE_NAME}} ENABLE ROW LEVEL SECURITY;
+-- ...RLS policies + updated_at trigger + FTS index...

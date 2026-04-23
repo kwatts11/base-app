@@ -42,9 +42,11 @@ const PERMISSION_MATRIX: Record<PermissionCategory, UserRole> = {
 // ── Human-readable role labels ─────────────────────────────────────────────────
 // TODO: [BASE-APP SETUP NEEDED] — AI sets these from PRD.md role names
 export const ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.Employee]: 'Employee',   // TODO: rename e.g. 'Staff'
-  [UserRole.Manager]: 'Manager',     // TODO: rename e.g. 'Supervisor'
+  // WIZARD:BEGIN role-labels
+  [UserRole.Employee]: 'Employee',
+  [UserRole.Manager]: 'Manager',
   [UserRole.Admin]: 'Admin',
+  // WIZARD:END role-labels
 };
 
 // ── Core permission check ──────────────────────────────────────────────────────

@@ -64,15 +64,18 @@ export interface AppTheme {
  */
 export const DEFAULT_THEME: AppTheme = {
   colors: {
-    // TODO: Replace with PRD.md brand colors
+    // WIZARD:BEGIN theme-colors
     primary: '#4F8EF7',
     secondary: '#2C3E50',
     accent: '#E74C3C',
     background: '#0F1115',
     surface: '#1A1E25',
+    // WIZARD:END theme-colors
     inputBackground: '#22272F',
+    // WIZARD:BEGIN theme-text-colors
     text: '#F0F0F0',
     textSecondary: '#9AA3B0',
+    // WIZARD:END theme-text-colors
     textMuted: '#5A6270',
     border: '#2A2F3A',
     success: '#27AE60',

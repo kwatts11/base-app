@@ -62,6 +62,7 @@ const CONFIG_ACTIONS: AdminAction[] = [
     route: '/(modal)/edit-enums',
     adminOnly: true,
   },
+  // WIZARD:BEGIN area-colors-action
   {
     title: 'Area Colors',
     description: 'Manage map area names and colors',
@@ -69,7 +70,7 @@ const CONFIG_ACTIONS: AdminAction[] = [
     route: '/(modal)/area-colors',
     adminOnly: true,
   },
-  // TODO: [BASE-APP SETUP NEEDED] — Add app-specific admin config actions from PRD.md
+  // WIZARD:END area-colors-action
 ];
 
 const FEEDBACK_ACTIONS: AdminAction[] = [

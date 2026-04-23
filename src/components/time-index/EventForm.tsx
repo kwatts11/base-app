@@ -24,14 +24,14 @@ import { supabase } from '../../lib/supabase';
 import { EnumPicker } from './EnumPicker';
 import { TimeIndexedEvent } from './EventTile';
 
-// TODO: [BASE-APP SETUP NEEDED] Replace these fields with your entity's fields from PRD.md
 interface EventFormData {
+  // WIZARD:BEGIN default-fields
   title: string;
   description?: string;
-  startTime: string; // ISO string
+  startTime: string;
   endTime?: string;
   tags: string[];
-  // TODO: Add app-specific fields here
+  // WIZARD:END default-fields
 }
 
 interface Props {
@@ -49,11 +49,14 @@ interface Props {
 
 export function EventForm({
   event,
-  // TODO: [BASE-APP SETUP NEEDED] — AI sets these from PRD.md
+  // WIZARD:BEGIN default-table
   tableName = 'events',
+  // WIZARD:END default-table
   onSuccess,
   onCancel,
+  // WIZARD:BEGIN default-enums
   enumCategories = [],
+  // WIZARD:END default-enums
 }: Props): React.JSX.Element {
   const { theme } = useTheme();
   const isEditing = !!event;

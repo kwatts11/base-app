@@ -34,6 +34,7 @@ interface TabConfig {
 }
 
 const TAB_CONFIG: TabConfig[] = [
+  // WIZARD:BEGIN tab-config
   {
     name: 'home',
     title: 'Home',
@@ -52,8 +53,7 @@ const TAB_CONFIG: TabConfig[] = [
     iconFocused: 'navigate',
     iconUnfocused: 'navigate-outline',
   },
-  // TODO: Add tabs from PRD.md — examples:
-  // { name: 'search', title: 'Search', iconFocused: 'search', iconUnfocused: 'search-outline' },
+  // WIZARD:END tab-config
 ];
 
 // ── Setup banner — visible until AI setup replaces this ────────────────────
@@ -128,7 +128,9 @@ export default function TabsLayout(): React.JSX.Element {
 
   return (
     <AuthGuard>
+      {/* WIZARD:BEGIN setup-banner */}
       {!isAppSetUp && <SetupBanner />}
+      {/* WIZARD:END setup-banner */}
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: theme.colors.primary,
