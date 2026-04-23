@@ -225,15 +225,53 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   try {
-    // Clean up all localStorage on sign-out for security
-    if (typeof window !== 'undefined') {
-      try { window.localStorage.clear(); } catch { /* ignore */ }
-    }
     const { error } = await supabase.auth.signOut();
-    return { error: error ? handleDatabaseError(error) : null };
+
+    // Wipe sb-*-auth-token keys so a revoked session can't be re-hydrated
+    // by supabase-js on next page load. Don't nuke the whole localStorage —
+    // that would destroy app preferences and other unrelated data.
+    if (typeof window !== 'undefined') {
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && /^sb-.*-auth-token/.test(k)) keysToRemove.push(k);
+        }
+        keysToRemove.forEach(k => window.localStorage.removeItem(k));
+      } catch {
+        // ignore
+      }
+    }
+
+    if (error) {
+      // Session already gone server-side IS the desired end state for sign-out.
+      if (isAuthSessionDeadError(error)) return { error: null };
+      return { error: handleDatabaseError(error) };
+    }
+    return { error: null };
   } catch (e) {
+    if (isAuthSessionDeadError(e)) return { error: null };
     return { error: handleDatabaseError(e) };
   }
+}
+
+/**
+ * Detects errors indicating the Supabase session is dead server-side
+ * (revoked, expired, missing). Falling back to default state when this happens
+ * leaves the app "authenticated" with a token that can't make any DB calls,
+ * which manifests as an infinite spinner.
+ */
+export function isAuthSessionDeadError(error: unknown): boolean {
+  if (!error) return false;
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : (error as { message?: string })?.message ?? '';
+  return /AuthSessionMissing|session.*missing|invalid_grant|jwt.*expired|jwt.*invalid|403|refresh.*token.*not found/i.test(
+    message
+  );
 }
 
 export async function resetPassword(email: string) {

@@ -1,0 +1,111 @@
+name: Build Setup Wizard
+
+on:
+  push:
+    tags:
+      - 'wizard-v*'   # e.g. git tag wizard-v1.0.0 && git push --tags
+
+permissions:
+  contents: write   # needed to upload release assets
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            artifact: 'Base-App Setup Wizard Setup *.exe'
+          - os: macos-latest
+            platform: mac
+            artifact: '*.dmg'
+          - os: ubuntu-latest
+            platform: linux
+            artifact: '*.AppImage'
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: tools/setup-wizard
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tools/setup-wizard/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      # macOS: code signing is optional; skip if certs not configured
+      - name: Build (Windows)
+        if: matrix.platform == 'win'
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (macOS)
+        if: matrix.platform == 'mac'
+        run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # CSC_LINK: ${{ secrets.MAC_CERT_P12 }}      # optional code signing
+          # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PWD }}
+
+      - name: Build (Linux)
+        if: matrix.platform == 'linux'
+        run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wizard-${{ matrix.platform }}
+          path: |
+            tools/setup-wizard/dist/${{ matrix.artifact }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create / update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Base-App Setup Wizard ${{ github.ref_name }}"
+          body: |
+            ## Base-App Setup Wizard ${{ github.ref_name }}
+
+            Download the binary for your platform below, double-click to run.
+            No Node.js or npm required.
+
+            | Platform | Download |
+            |----------|----------|
+            | Windows  | `Base-App Setup Wizard Setup *.exe` |
+            | macOS    | `*.dmg` |
+            | Linux    | `*.AppImage` |
+
+            ### First run
+
+            1. Download and run the wizard for your platform
+            2. Choose a parent folder — the wizard clones `base-app` for you
+            3. Fill in the 10-step form
+            4. Click **Generate App** — `master-prompt.md` opens in Cursor
+            5. Paste it into a Cursor Agent chat and let the AI finish setup
+          files: artifacts/**/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

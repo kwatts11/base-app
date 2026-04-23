@@ -62,6 +62,13 @@ const CONFIG_ACTIONS: AdminAction[] = [
     route: '/(modal)/edit-enums',
     adminOnly: true,
   },
+  {
+    title: 'Area Colors',
+    description: 'Manage map area names and colors',
+    icon: 'color-palette-outline',
+    route: '/(modal)/area-colors',
+    adminOnly: true,
+  },
   // TODO: [BASE-APP SETUP NEEDED] — Add app-specific admin config actions from PRD.md
 ];
 

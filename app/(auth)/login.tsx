@@ -31,6 +31,8 @@ export default function LoginScreen(): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showRememberHelp, setShowRememberHelp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordRef = useRef<TextInput>(null);
@@ -43,7 +45,7 @@ export default function LoginScreen(): React.JSX.Element {
 
     setIsSubmitting(true);
     try {
-      const result = await signIn(email.trim().toLowerCase(), password);
+      const result = await signIn(email.trim().toLowerCase(), password, rememberMe);
       if (result.success) {
         router.replace('/(tabs)/home');
       }
@@ -112,6 +114,42 @@ export default function LoginScreen(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
+          <View style={s.rememberRow}>
+            <TouchableOpacity
+              style={s.rememberToggle}
+              onPress={() => setRememberMe(v => !v)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: rememberMe }}
+            >
+              <View
+                style={[
+                  s.checkbox,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: rememberMe ? theme.colors.primary : 'transparent',
+                  },
+                ]}
+              >
+                {rememberMe && <Ionicons name="checkmark" size={14} color="#fff" />}
+              </View>
+              <Text style={[s.rememberText, { color: theme.colors.text }]}>
+                Remember me
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowRememberHelp(v => !v)}>
+              <Ionicons
+                name="help-circle-outline"
+                size={18}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+          {showRememberHelp && (
+            <Text style={[s.helpText, { color: theme.colors.textSecondary }]}>
+              Stay signed in for 30 days on this device. Leave unchecked for a 24-hour session.
+            </Text>
+          )}
+
           <Link href="/(auth)/forgot-password" asChild>
             <TouchableOpacity style={s.forgotRow}>
               <Text style={[s.forgotText, { color: theme.colors.primary }]}>
@@ -162,6 +200,28 @@ const makeStyles = (theme: any) =>
       bottom: 0,
       justifyContent: 'center',
     },
+    rememberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 16,
+    },
+    rememberToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderRadius: 4,
+      borderWidth: 1,
+      marginRight: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rememberText: { fontSize: 14 },
+    helpText: { fontSize: 12, marginTop: 8, lineHeight: 16 },
     forgotRow: { alignSelf: 'flex-end', marginTop: 8, marginBottom: 24 },
     forgotText: { fontSize: 13, fontWeight: '500' },
     button: {

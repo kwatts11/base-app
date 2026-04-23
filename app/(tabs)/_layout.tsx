@@ -40,9 +40,19 @@ const TAB_CONFIG: TabConfig[] = [
     iconFocused: 'home',
     iconUnfocused: 'home-outline',
   },
+  {
+    name: 'area',
+    title: 'Area',
+    iconFocused: 'layers',
+    iconUnfocused: 'layers-outline',
+  },
+  {
+    name: 'map',
+    title: 'Map',
+    iconFocused: 'navigate',
+    iconUnfocused: 'navigate-outline',
+  },
   // TODO: Add tabs from PRD.md — examples:
-  // { name: 'today', title: 'Today', iconFocused: 'calendar', iconUnfocused: 'calendar-outline' },
-  // { name: 'week', title: 'Week', iconFocused: 'grid', iconUnfocused: 'grid-outline' },
   // { name: 'search', title: 'Search', iconFocused: 'search', iconUnfocused: 'search-outline' },
 ];
 

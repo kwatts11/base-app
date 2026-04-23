@@ -13,7 +13,10 @@
       "backgroundColor": "#121212"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used to set your current location when adding a new location."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -65,7 +68,19 @@
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "YOUR_MAPBOX_SECRET_TOKEN"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Used to set your current location when adding a new location."
+        }
+      ]
     ],
     "extra": {
       "router": {}

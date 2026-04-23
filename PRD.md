@@ -43,7 +43,7 @@
 
 - Logo URL: 
 - Logo Description: 
-- Favicon/App Icon Description: 
+- Favicon/App Icon Description:
 
 ---
 
@@ -152,8 +152,6 @@
 
 **Custom Transactional Emails** (sent via edge function — optional):
 
-
-
 ---
 
 ## 9. Supabase Project [REQUIRED]
@@ -199,8 +197,6 @@
 
 > Free text — describe anything not covered above. Feature ideas, integrations, constraints, design preferences, data import needs, etc.
 
-
-
 ---
 
 ## 14. AI Setup Checklist
@@ -230,4 +226,3 @@
 - [MANUAL] Deploy to Netlify/Vercel and connect domain
 - [MANUAL] Add all `.env` values to hosting platform environment variables
 - [MANUAL] Upload app logo/icon assets
-

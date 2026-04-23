@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { APP_CONFIG } from '../constants/appConfig';
 import { supabase } from '../lib/supabase';
+import { WIZARD_COMPLETED_ITEMS } from '../constants/setupConfig';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface SetupStep {
@@ -89,26 +90,27 @@ export const SETUP_ITEMS: SetupItem[] = [
   },
   {
     id: 'ai_setup_run',
-    title: 'Run AI setup prompt',
-    description: 'Paste the APP_SETUP_PROMPT into Cursor to configure branding, roles, and tabs from PRD.md.',
+    title: 'Run AI setup in Cursor',
+    description: 'Open master-prompt.md in Cursor Agent mode to configure branding, roles, tabs, and apply database migrations automatically.',
     category: 'required',
     autoDetect: () => APP_CONFIG.name !== 'APP_NAME' && APP_CONFIG.tagline !== 'Your app tagline here.',
     steps: [
       {
-        heading: 'Open Cursor and start a new chat',
-        body: 'Make sure your PRD.md and .env are both filled out before running this step.',
+        heading: 'Find master-prompt.md',
+        body: 'If you used the Setup Wizard, master-prompt.md is in the project root and was highlighted in your file explorer. Right-click it → Open With → Cursor.',
+        code: '# Or open manually:\ncursor master-prompt.md',
       },
       {
-        heading: 'Paste the setup prompt',
-        body: 'Open docs/prompts/APP_SETUP_PROMPT.md and paste its entire contents into the Cursor chat.',
+        heading: 'Open a new Agent chat in Cursor',
+        body: 'Press Cmd/Ctrl+L to open the chat panel. Switch to Agent mode (not Ask mode). Paste or drag the contents of master-prompt.md into the chat.',
       },
       {
         heading: 'Wait for AI completion',
-        body: 'The AI will read PRD.md, configure your app name, colors, roles, and (if time-indexed) run TIME_INDEX_PROMPT automatically. It will output a manual steps checklist when done.',
+        body: 'The AI configures app name, colors, roles, applies database migrations via Supabase MCP, scaffolds tabs, and writes SETUP_TODO.md with remaining manual steps.',
       },
       {
         heading: 'Verify changes',
-        body: 'Check that appConfig.ts, theme.ts, and the tab layout now reflect your PRD.md values. The [BASE-APP SETUP NEEDED] banners should be gone.',
+        body: 'Check that appConfig.ts, theme.ts, and the tab layout reflect your app values. The [BASE-APP SETUP NEEDED] banners should be gone. Open SETUP_TODO.md for what remains.',
       },
     ],
   },
@@ -378,6 +380,8 @@ export function useSetupChecklist() {
 
   const isCompleted = useCallback(
     (id: string): boolean => {
+      // Items completed by the setup wizard are always marked done
+      if (WIZARD_COMPLETED_ITEMS.includes(id)) return true;
       // Auto-detected items take precedence
       const item = SETUP_ITEMS.find(i => i.id === id);
       if (item?.autoDetect) {

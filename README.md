@@ -76,8 +76,9 @@ Every app built from `base-app` starts with:
 - [x] Optional: bug report → Slack → Cursor AI auto-fix pipeline
 
 **Developer Experience**
+- [x] Desktop Setup Wizard — Electron app that clones, configures, and generates `master-prompt.md`
 - [x] Setup Checklist tab — auto-detects progress, disappears when complete
-- [x] AI setup prompts: `APP_SETUP_PROMPT.md`, `TIME_INDEX_PROMPT.md`
+- [x] AI setup prompts: `master-prompt-template.md`, `APP_SETUP_PROMPT.md`
 - [x] Agent skills: caveman, caveman-commit, caveman-review, andrej-karpathy
 - [x] Page ID system for update tracking across deploys
 
@@ -85,37 +86,59 @@ Every app built from `base-app` starts with:
 
 ## Quick Start
 
-**You need:** Node.js 18+, [Cursor](https://cursor.com), a [Supabase](https://supabase.com) account.
+### Option A — Setup Wizard (recommended)
 
-**1. Clone into a new project**
+**You need:** [Cursor](https://cursor.com), a [Supabase](https://supabase.com) account. Node.js is not required on your machine.
+
+**1. Download the Setup Wizard**
+
+Go to [GitHub Releases](https://github.com/youruser/base-app/releases) and download the binary for your platform:
+- Windows: `Base-App Setup Wizard Setup *.exe`
+- macOS: `*.dmg`
+- Linux: `*.AppImage`
+
+Double-click to run — no install, no Node.js required.
+
+**2. Run the wizard**
+
+The wizard opens a native desktop window and guides you through:
+- Choose a parent folder — wizard clones `base-app` automatically
+- Fill in 10 steps: app identity, branding (logo + colors), data model, roles, enum categories, tab structure, email, Supabase credentials, email provider, deployment
+- Click **Generate App** — wizard writes `PRD.md`, `.env`, icons, and `master-prompt.md` to your new project
+
+**3. Open master-prompt.md in Cursor**
+
+The wizard highlights `master-prompt.md` in your file explorer. Right-click → **Open With → Cursor**.
+
+Open a new Agent chat (`Cmd/Ctrl+L`, switch to Agent mode), paste the file contents, and let the AI finish:
+- Configures app name, colors, roles, and tab layout
+- Applies database migrations via Supabase MCP
+- Scaffolds entity-specific screens
+- Writes `SETUP_TODO.md` with the remaining manual steps (~15–30 min)
+
+**4. Complete manual steps from `SETUP_TODO.md`**
+
+Configure SMTP in the Supabase dashboard, create your first admin user, and deploy.
+
+---
+
+### Option B — Manual setup
+
+**You need:** Node.js 18+, [Cursor](https://cursor.com), a [Supabase](https://supabase.com) account.
 
 ```bash
 git clone https://github.com/youruser/base-app.git my-app
 cd my-app
 rm -rf .git && git init && git add . && git commit -m "init"
-```
-
-**2. Create a Supabase project and fill in your keys**
-
-```bash
 cp .env.example .env
-# Paste your Supabase URL, anon key, service_role key, and SMTP credentials into .env
+# Paste your Supabase URL, anon key, service_role key into .env
 ```
 
-**3. Describe your app in `PRD.md`, then run the AI setup**
-
-Open `PRD.md` and fill in the `[REQUIRED]` sections — app name, colors, roles, entity fields, tabs. Then open Cursor, start a new chat, and paste the full contents of `docs/prompts/APP_SETUP_PROMPT.md`.
-
-The AI reads your `PRD.md` and configures everything autonomously. When it finishes, it outputs a short checklist of steps that need a browser (run migrations, configure SMTP, invite first admin).
-
-**4. Run the app**
+Fill in `PRD.md` (`[REQUIRED]` sections: app name, colors, roles, entity, tabs), then open Cursor and paste `docs/prompts/APP_SETUP_PROMPT.md` into a new Agent chat.
 
 ```bash
-npm install
-npm start
+npm install && npm start
 ```
-
-Open `http://localhost:8081`. Sign in with the admin account you created. The **Setup Checklist** tab tracks remaining items and auto-detects when they're done.
 
 > See [`docs/NEW_APP_GUIDE.md`](docs/NEW_APP_GUIDE.md) for the complete walkthrough.
 
@@ -148,8 +171,35 @@ The index layer is what makes `base-app` more than a starter kit. Rather than re
 | Type | Status | Description |
 |---|---|---|
 | `time` | Available | Day / Week / Month views. Events, classes, shifts, appointments. |
-| `location` | Planned | Map + list views. Venues, check-ins, service areas. |
+| `location` | Available | Area list + Mapbox map views. Venues, check-ins, service areas. Requires Mapbox token — see [Mapbox Setup](#mapbox-setup). |
 | `custom` | Open | Define your own browsing pattern. |
+
+---
+
+## Mapbox Setup
+
+The location index layer uses Mapbox for the native map tab. Two tokens are required:
+
+**1. Public access token** (used at runtime)
+
+- Get one at [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/)
+- Set it in [`src/constants/mapConfig.ts`](src/constants/mapConfig.ts):
+  ```ts
+  export const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiYW...';
+  ```
+
+**2. Secret download token** (used at native build time)
+
+- Create a secret token with the `Downloads:Read` scope at [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/)
+- Set it in [`app.json`](app.json) under `plugins > @rnmapbox/maps > RNMapboxMapsDownloadToken`, or store it as an EAS secret (`MAPBOX_SECRET_TOKEN`) and reference it in `eas.json`
+
+**Note:** The map tab requires a native build (`expo prebuild` or EAS Build). It shows a fallback message on web.
+
+---
+
+## Conventions
+
+**Time zones** — Store all dates in UTC (`timestamptz` columns, UTC `Date` instances in code). Display in the device's local zone via `formatLocal*` helpers in [`src/utils/dateUtils.ts`](src/utils/dateUtils.ts). Never call raw `toLocaleString` and never set a global default zone.
 
 ---
 

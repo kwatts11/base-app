@@ -9,6 +9,8 @@ export default function ModalLayout(): React.JSX.Element {
       <Stack.Screen name="invite-user" />
       <Stack.Screen name="report-bug" />
       <Stack.Screen name="request-feature" />
+      <Stack.Screen name="area-colors" />
+      <Stack.Screen name="add-location" />
     </Stack>
   );
 }

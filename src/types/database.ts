@@ -49,6 +49,35 @@ export interface EditableEnum {
   isPublic: boolean;
 }
 
+// ── Areas ────────────────────────────────────────────────────────────────────
+export interface AreaRow {
+  id: string;
+  name: string;
+  color: string;
+  display_order: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── Locations ────────────────────────────────────────────────────────────────
+export interface LocationRow {
+  id: string;
+  name: string;
+  area_id: string;
+  latitude: number;
+  longitude: number;
+  notes: string | null;
+  group: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** LocationRow joined with its parent area */
+export interface LocationWithArea extends LocationRow {
+  area: AreaRow;
+}
+
 // ── Session invalidations (admin-forced logout) ──────────────────────────────
 export interface SessionInvalidationRow {
   id: string;
@@ -76,6 +105,16 @@ export interface Database {
         Row: SessionInvalidationRow;
         Insert: Omit<SessionInvalidationRow, 'id' | 'created_at'>;
         Update: Partial<Omit<SessionInvalidationRow, 'id' | 'created_at'>>;
+      };
+      areas: {
+        Row: AreaRow;
+        Insert: Omit<AreaRow, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<AreaRow, 'id' | 'created_at'>>;
+      };
+      locations: {
+        Row: LocationRow;
+        Insert: Omit<LocationRow, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<LocationRow, 'id' | 'created_at'>>;
       };
       // TODO: [BASE-APP SETUP NEEDED] — AI adds app entity table types here
     };

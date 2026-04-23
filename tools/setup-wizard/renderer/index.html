@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;" />
+  <title>Base-App Setup Wizard</title>
+  <link rel="stylesheet" href="wizard.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ── Sidebar ───────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>Base-App</h1>
+        <p>Setup Wizard</p>
+      </div>
+
+      <nav class="sidebar-steps" id="sidebarSteps">
+        <!-- Populated by JS -->
+      </nav>
+
+      <div class="sidebar-progress">
+        <div class="progress-label">
+          <span>Progress</span>
+          <span id="progressText">0 of 10</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main content ──────────────────────────────────────────────────── -->
+    <div class="main-content">
+
+      <!-- Screen 0: Project location (not in sidebar steps) -->
+      <div class="screen active" id="screen-0">
+        <div class="location-screen">
+          <div class="location-logo">🚀</div>
+          <h2>Create New App</h2>
+          <p>Choose where to create your project. The wizard will clone base-app and guide you through setup.</p>
+
+          <div class="location-form">
+            <div class="form-group">
+              <label>Parent Folder <span class="required">*</span></label>
+              <div class="folder-picker">
+                <input type="text" id="parentFolder" placeholder="/Users/you/Projects" readonly />
+                <button class="btn btn-secondary" id="chooseFolderBtn">Browse…</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Project Name <span class="required">*</span>
+                <span class="hint">— folder will be created at parent/name</span>
+              </label>
+              <input type="text" id="projectName" placeholder="my-new-app" />
+            </div>
+
+            <div id="locationError" class="status-row error hidden"></div>
+            <div id="cloneProgress" class="clone-progress"></div>
+
+            <div class="mt-16" style="display:flex; justify-content:flex-end;">
+              <button class="btn btn-primary btn-lg" id="cloneBtn" disabled>
+                Clone &amp; Continue →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step screens (1–11) -->
+      <div class="screen" id="screen-1">
+        <div class="screen-header">
+          <h2>App Identity</h2>
+          <p>Basic information about your app. This sets the name, slug, and public-facing description.</p>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>App Name <span class="required">*</span></label>
+            <input type="text" id="appName" placeholder="Brew Events" data-validate="required" />
+          </div>
+          <div class="form-group">
+            <label>App Slug <span class="required">*</span>
+              <span class="hint">— URL-safe identifier</span>
+            </label>
+            <input type="text" id="appSlug" placeholder="brew-events" data-validate="required" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tagline <span class="required">*</span></label>
+          <input type="text" id="appTagline" placeholder="Manage your brewery events with ease." data-validate="required" />
+        </div>
+        <div class="form-group">
+          <label>Short Description</label>
+          <textarea id="appDescription" placeholder="A brief description of what this app does and who it's for." rows="3"></textarea>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>Target Audience</label>
+            <input type="text" id="appAudience" placeholder="Brewery staff and managers" />
+          </div>
+          <div class="form-group">
+            <label>Production URL</label>
+            <input type="url" id="appUrl" placeholder="https://my-app.netlify.app" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Additional Notes <span class="hint">— anything not covered elsewhere</span></label>
+          <textarea id="appNotes" placeholder="Special requirements, constraints, integrations…" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-2">
+        <div class="screen-header">
+          <h2>Branding</h2>
+          <p>Upload your logo and choose the color palette. Icons are generated automatically from the logo.</p>
+        </div>
+
+        <!-- Logo upload -->
+        <div class="card">
+          <div class="card-title">Logo</div>
+          <div class="logo-drop" id="logoDrop">
+            <input type="file" id="logoInput" accept="image/*" />
+            <div id="logoDropContent">
+              <div class="logo-drop-icon">🖼️</div>
+              <div class="logo-drop-text">Drag &amp; drop your logo here, or click to browse</div>
+              <div class="logo-drop-hint">PNG, SVG, or JPG — ideally square, 512×512+</div>
+            </div>
+          </div>
+          <div class="logo-preview" id="logoPreview">
+            <div class="logo-preview-sizes">
+              <div class="logo-size-preview">
+                <img id="logoPreview512" width="64" height="64" alt="512" />
+                <span>512px</span>
+              </div>
+              <div class="logo-size-preview">
+                <img id="logoPreview192" width="40" height="40" alt="192" />
+                <span>192px</span>
+              </div>
+              <div class="logo-size-preview">
+                <img id="logoPreview32" width="20" height="20" alt="32" />
+                <span>32px</span>
+              </div>
+            </div>
+            <div style="flex:1">
+              <div id="logoFileName" style="font-size:12px; font-weight:600; margin-bottom:4px;"></div>
+              <div style="font-size:11px; color:var(--text-muted)">Icons will be auto-generated at 512, 192, 180, and 32px on submit.</div>
+              <button class="btn btn-ghost btn-sm mt-8" id="removeLogoBtn">Remove</button>
+            </div>
+          </div>
+          <div class="form-group mt-12">
+            <label>Logo Description <span class="hint">— for the AI to reference</span></label>
+            <input type="text" id="logoDescription" placeholder="Blue circular logo with a hops icon and the app name" />
+          </div>
+        </div>
+
+        <!-- Color fields -->
+        <div class="card">
+          <div class="card-title">Colors</div>
+          <div class="color-fields" id="colorFields">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-3">
+        <div class="screen-header">
+          <h2>Data Model</h2>
+          <p>Define your core entity — the main "thing" your app manages. Import from a file or start from scratch.</p>
+        </div>
+
+        <div class="form-row cols-2 mb-16">
+          <div class="form-group">
+            <label>Entity Name (singular) <span class="required">*</span></label>
+            <input type="text" id="entitySingular" placeholder="Event" data-validate="required" />
+          </div>
+          <div class="form-group">
+            <label>Entity Name (plural) <span class="required">*</span></label>
+            <input type="text" id="entityPlural" placeholder="Events" data-validate="required" />
+          </div>
+        </div>
+
+        <div class="import-toolbar">
+          <button class="btn btn-secondary btn-sm" id="importCsvBtn">📂 Upload CSV / Excel</button>
+          <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" style="display:none" />
+          <button class="btn btn-secondary btn-sm" id="pasteTextBtn">📋 Paste Text</button>
+          <div class="divider"></div>
+          <button class="btn btn-ghost btn-sm" id="addFieldBtn">+ Add Field</button>
+          <div style="margin-left:auto; font-size:12px; color:var(--text-muted)">Import detects field names and types automatically.</div>
+        </div>
+
+        <div class="enum-banner" id="enumBanner">
+          <span>💡</span>
+          <div><strong>Enum candidates detected</strong>These columns have few unique values and may be enum categories. They'll be pre-populated in Step 5.</div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:200px">Field Name</th>
+                <th style="width:140px">Type</th>
+                <th style="width:80px; text-align:center">Required</th>
+                <th>Notes</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="fieldsBody">
+              <!-- Default rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-row cols-2 mt-16">
+          <div class="form-group">
+            <label>Searchable Fields</label>
+            <input type="text" id="searchableFields" placeholder="Title, Description" />
+            <div class="text-small text-muted mt-4">Comma-separated field names to include in full-text search.</div>
+          </div>
+          <div class="form-group">
+            <label>Default Sort</label>
+            <div style="display:flex; gap:8px">
+              <input type="text" id="defaultSort" placeholder="Start Time" style="flex:1" />
+              <select id="defaultSortDir" style="width:100px">
+                <option value="asc">Ascending</option>
+                <option value="desc" selected>Descending</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-4">
+        <div class="screen-header">
+          <h2>Roles</h2>
+          <p>Define the three access tiers for your app. Rename them to match your organization — the underlying permissions stay the same.</p>
+        </div>
+
+        <div class="card">
+          <div id="roleRows">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="card mt-12">
+          <div class="card-title">Access Settings</div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>Default role for new users</label>
+              <select id="defaultRole">
+                <option value="employee">Level 1 (lowest)</option>
+                <option value="manager">Level 2</option>
+                <option value="admin">Level 3 (Admin)</option>
+              </select>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Invite-only registration</div>
+              <div class="toggle-desc">New users can only join via an invitation from an admin. Recommended.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="inviteOnly" checked />
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-5">
+        <div class="screen-header">
+          <h2>Enum Categories</h2>
+          <p>Define the dropdown/tag categories that admins can manage. These populate selects throughout the app.</p>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table enum-table">
+            <thead>
+              <tr>
+                <th style="width:180px">Category Name</th>
+                <th style="width:240px">Example Values <span style="font-weight:400">(comma-separated)</span></th>
+                <th>Used On</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="enumsBody">
+              <!-- Populated from step 3 detection + defaults -->
+            </tbody>
+          </table>
+        </div>
+        <button class="btn btn-secondary btn-sm mt-8" id="addEnumBtn">+ Add Category</button>
+      </div>
+
+      <div class="screen" id="screen-6">
+        <div class="screen-header">
+          <h2>Tab Structure</h2>
+          <p>Choose how your data is primarily browsed — this pre-selects the relevant views. Adjust as needed.</p>
+        </div>
+
+        <div class="index-cards" id="indexCards">
+          <div class="index-card" data-index="time">
+            <div class="index-card-icon">📅</div>
+            <div class="index-card-title">By Time</div>
+            <div class="index-card-desc">Events, classes, shifts, appointments. Day / Week / Month views.</div>
+          </div>
+          <div class="index-card" data-index="location">
+            <div class="index-card-icon">📍</div>
+            <div class="index-card-title">By Location</div>
+            <div class="index-card-desc">Venues, check-ins, service areas. Map + list views.</div>
+          </div>
+          <div class="index-card" data-index="custom">
+            <div class="index-card-icon">⚙️</div>
+            <div class="index-card-title">Custom</div>
+            <div class="index-card-desc">Define your own browsing pattern. No pre-selections.</div>
+          </div>
+        </div>
+
+        <div class="tabs-checklist" id="tabsChecklist">
+          <!-- Populated by JS based on index selection -->
+        </div>
+
+        <!-- Mapbox config panel (populated when location index selected) -->
+        <div id="mapboxPanel" class="hidden"></div>
+
+        <!-- Required fields warning (populated by renderFieldWarning()) -->
+        <div id="fieldRequirementsWarning" class="hidden"></div>
+
+        <div class="custom-tabs-section mt-16">
+          <div class="flex items-center justify-between mb-16">
+            <div style="font-size:13px; font-weight:600; color:var(--text-secondary)">Custom Tabs</div>
+            <button class="btn btn-secondary btn-sm" id="addCustomTabBtn">+ Add Tab</button>
+          </div>
+          <div id="customTabsRows">
+            <!-- Custom tab rows added here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-7">
+        <div class="screen-header">
+          <h2>Email</h2>
+          <p>The "from" address and sender name for auth emails (invite, reset, magic link).</p>
+        </div>
+        <div class="card">
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>From Address <span class="required">*</span></label>
+              <input type="email" id="emailFrom" placeholder="noreply@yourdomain.com" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label>Sender Name <span class="required">*</span></label>
+              <input type="text" id="emailSenderName" placeholder="Brew Events" data-validate="required" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email Tone / Style</label>
+            <select id="emailTone">
+              <option value="Friendly">Friendly</option>
+              <option value="Formal">Formal</option>
+              <option value="Neutral">Neutral</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-8">
+        <div class="screen-header">
+          <h2>Supabase</h2>
+          <p>Your Supabase project credentials. Find these in the Supabase Dashboard → Settings → API.</p>
+        </div>
+        <div class="card">
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>Project Name</label>
+              <input type="text" id="supabaseProjectName" placeholder="Brew Events Production" />
+            </div>
+            <div class="form-group">
+              <label>Project ID <span class="required">*</span>
+                <span class="hint">— e.g. abcdefghijklmnop</span>
+              </label>
+              <input type="text" id="supabaseProjectId" placeholder="abcdefghijklmnop" data-validate="required" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Project URL</label>
+            <div class="input-with-badge">
+              <input type="text" id="supabaseUrl" placeholder="https://abcde.supabase.co" readonly />
+              <span class="input-badge">Auto</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Region</label>
+            <select id="supabaseRegion">
+              <option value="us-east-1">US East (N. Virginia)</option>
+              <option value="us-west-1">US West (N. California)</option>
+              <option value="eu-central-1">EU (Frankfurt)</option>
+              <option value="eu-west-1">EU (Ireland)</option>
+              <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+              <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
+              <option value="ap-southeast-2">Asia Pacific (Sydney)</option>
+              <option value="sa-east-1">South America (São Paulo)</option>
+            </select>
+          </div>
+          <hr class="section-divider" />
+          <div class="form-group">
+            <label>Anon Key <span class="required">*</span></label>
+            <div class="input-with-badge">
+              <input type="password" id="supabaseAnonKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" data-validate="required" />
+              <span class="input-badge" style="cursor:pointer" id="toggleSupabaseAnonKey" onclick="toggleMask('supabaseAnonKey')">Show</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Service Role Key <span class="required">*</span>
+              <span class="hint">— never expose to clients</span>
+            </label>
+            <div class="input-with-badge">
+              <input type="password" id="supabaseServiceKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" data-validate="required" />
+              <span class="input-badge" style="cursor:pointer" id="toggleSupabaseServiceKey" onclick="toggleMask('supabaseServiceKey')">Show</span>
+            </div>
+          </div>
+          <div class="connection-test-row">
+            <button class="btn btn-secondary" id="testConnectionBtn">Test Connection</button>
+            <div class="spinner" id="connSpinner"></div>
+            <div id="connStatus"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-9">
+        <div class="screen-header">
+          <h2>Email Provider</h2>
+          <p>How will your app send transactional emails? Resend is recommended — free tier handles most apps.</p>
+        </div>
+        <div class="provider-tabs">
+          <button class="provider-tab active" data-provider="resend">Resend</button>
+          <button class="provider-tab" data-provider="smtp">Custom SMTP</button>
+          <button class="provider-tab" data-provider="skip">Skip for now</button>
+        </div>
+
+        <div class="provider-panel active card" id="panel-resend">
+          <div class="form-group">
+            <label>Resend API Key</label>
+            <input type="password" id="resendApiKey" placeholder="re_xxxxxxxxxxxxxxxxxxxx" />
+          </div>
+          <div class="status-row info" style="margin-top:0">
+            Free at <a href="#" onclick="window.wizard.openUrl('https://resend.com'); return false;" style="color:var(--primary)">resend.com</a>. Use SMTP settings: host=smtp.resend.com, port=587, user=resend, pass=your-api-key.
+          </div>
+        </div>
+
+        <div class="provider-panel card" id="panel-smtp">
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>SMTP Host</label>
+              <input type="text" id="smtpHost" placeholder="smtp.resend.com" value="smtp.resend.com" />
+            </div>
+            <div class="form-group">
+              <label>SMTP Port</label>
+              <input type="text" id="smtpPort" placeholder="587" value="587" />
+            </div>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>SMTP User</label>
+              <input type="text" id="smtpUser" placeholder="resend" value="resend" />
+            </div>
+            <div class="form-group">
+              <label>SMTP Password</label>
+              <input type="password" id="smtpPass" placeholder="Your API key or password" />
+            </div>
+          </div>
+        </div>
+
+        <div class="provider-panel card" id="panel-skip">
+          <div class="status-row info" style="margin-top:0">
+            You can add email credentials later. The app will work without email — you'll just need to configure SMTP in Supabase Dashboard before sending invites or password resets.
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-10">
+        <div class="screen-header">
+          <h2>Deployment</h2>
+          <p>Where will your app be hosted? This sets the production URL and deployment notes in the generated files.</p>
+        </div>
+        <div class="card">
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>Hosting Platform</label>
+              <select id="deployPlatform">
+                <option value="Netlify">Netlify</option>
+                <option value="Vercel">Vercel</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Custom Domain</label>
+              <input type="text" id="deployDomain" placeholder="app.yourdomain.com" />
+            </div>
+          </div>
+        </div>
+
+        <details class="card" style="padding:0; overflow:hidden">
+          <summary style="padding:14px 16px; cursor:pointer; font-size:13px; font-weight:600; color:var(--text-secondary); list-style:none; display:flex; justify-content:space-between; align-items:center;">
+            <span>⚡ Slack Automation (optional)</span>
+            <span style="font-size:11px; font-weight:400">Bug → Slack → AI auto-fix pipeline</span>
+          </summary>
+          <div style="padding:0 16px 16px">
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label>Bug Reports Channel ID</label>
+                <input type="text" id="slackBugChannel" placeholder="C0XXXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label>Feature Requests Channel ID</label>
+                <input type="text" id="slackFeatureChannel" placeholder="C0XXXXXXXXX" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label>Slack Bot Token</label>
+                <input type="password" id="slackBotToken" placeholder="xoxb-…" />
+              </div>
+              <div class="form-group">
+                <label>Workspace Name</label>
+                <input type="text" id="slackWorkspace" placeholder="My Company" />
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="screen" id="screen-11">
+        <div class="screen-header">
+          <h2>Review &amp; Generate</h2>
+          <p>Check your settings below, then generate your configured project.</p>
+        </div>
+
+        <div id="reviewSections">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="generate-section">
+          <h3>Ready to generate?</h3>
+          <p>The wizard will write PRD.md, .env, and master-prompt.md to your project, generate app icons, and open the prompt file in Cursor.</p>
+          <button class="btn btn-primary btn-lg" id="generateBtn">Generate App →</button>
+
+          <div class="generate-progress" id="generateProgress">
+            <div class="gen-step" id="gstep-icons">
+              <span class="gen-step-icon">⬜</span> Generating icon assets…
+            </div>
+            <div class="gen-step" id="gstep-files">
+              <span class="gen-step-icon">⬜</span> Writing project files…
+            </div>
+            <div class="gen-step" id="gstep-cleanup">
+              <span class="gen-step-icon">⬜</span> Cleaning up wizard files…
+            </div>
+            <div class="gen-step" id="gstep-cursor">
+              <span class="gen-step-icon">⬜</span> Opening Cursor…
+            </div>
+          </div>
+          <div id="generateError" class="status-row error hidden" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <!-- Done screen -->
+      <div class="screen" id="screen-done">
+        <div class="done-screen">
+          <div class="done-icon">✅</div>
+          <h2>Your app is ready!</h2>
+          <p>All files have been written to your project. Here's what to do next:</p>
+
+          <div class="next-steps">
+            <div class="next-step-item">
+              <div class="next-step-num">1</div>
+              <div class="next-step-content">
+                <strong>Open master-prompt.md in Cursor</strong>
+                <p>The file is highlighted in your file explorer. Right-click it → <strong>Open With → Cursor</strong>.</p>
+                <div class="file-path-box" id="masterPromptPath"></div>
+              </div>
+            </div>
+            <div class="next-step-item">
+              <div class="next-step-num">2</div>
+              <div class="next-step-content">
+                <strong>Open a new Agent chat in Cursor</strong>
+                <p>Press <code>Cmd/Ctrl+L</code>, switch to <strong>Agent</strong> mode, and paste (or drag in) the master-prompt.md content.</p>
+              </div>
+            </div>
+            <div class="next-step-item">
+              <div class="next-step-num">3</div>
+              <div class="next-step-content">
+                <strong>The AI completes automated setup</strong>
+                <p>It configures your app, applies database migrations via Supabase MCP, scaffolds tabs, and writes <code>SETUP_TODO.md</code> with the remaining manual steps.</p>
+              </div>
+            </div>
+            <div class="next-step-item">
+              <div class="next-step-num">4</div>
+              <div class="next-step-content">
+                <strong>Complete the manual steps</strong>
+                <p>Open <code>SETUP_TODO.md</code> — it lists only what the AI couldn't do (SMTP config, first admin user, deploy).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav (hidden on screen 0 and done) -->
+      <div class="bottom-nav" id="bottomNav" style="display:none">
+        <span class="nav-hint" id="navHint"></span>
+        <div class="nav-actions">
+          <button class="btn btn-secondary" id="backBtn">← Back</button>
+          <button class="btn btn-primary" id="nextBtn">Continue →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paste text modal -->
+  <div class="modal-overlay" id="pasteModal">
+    <div class="modal">
+      <h3>Paste Data</h3>
+      <p>Paste tab-separated or comma-separated data. First row = column headers.</p>
+      <textarea id="pasteTextarea" placeholder="Title&#9;Type&#9;Start Date&#9;Description&#10;Annual Festival&#9;Event&#9;2026-06-15&#9;Summer beer fest"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="pasteModalCancel">Cancel</button>
+        <button class="btn btn-primary" id="pasteModalConfirm">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="wizard.js"></script>
+</body>
+</html>
