@@ -19,7 +19,8 @@
     "test:coverage": "jest --coverage",
     "clean:cache": "expo start --clear",
     "db:push": "npx supabase db push",
-    "db:reset": "npx supabase db reset"
+    "db:reset": "npx supabase db reset",
+    "db:schema": "node scripts/generate-schema.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.5",
